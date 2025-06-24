@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-// const auth = require('../middlewares/auth.middleware');
-const { marcarAsistencia } = require('../controllers/asistencia.controllers');
+const asistenciaController = require('../controllers/asistencia.controllers');
+const authMiddleware = require('../middlewares/auth');
 
-router.post('/marcar', marcarAsistencia);
+// Solo estudiantes
+router.post('/registrar', authMiddleware(['estudiante']), asistenciaController.registrarAsistencia);
 
 module.exports = router;

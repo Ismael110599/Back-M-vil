@@ -2,37 +2,99 @@ const Usuario = require('../models/Model.user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// Registro de usuario
 exports.registrarUsuario = async (req, res) => {
   try {
     const { nombre, correo, contrasena, rol } = req.body;
-    console.log('[Registro] Datos recibidos:', { nombre, correo, rol });
+
+    if (!nombre || !correo || !contrasena || !rol) {
+      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
+    // Verifica si ya existe
+    const usuarioExistente = await Usuario.findOne({ correo });
+    if (usuarioExistente) {
+      return res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
+    }
 
     const hashed = await bcrypt.hash(contrasena, 10);
-    console.log('[Registro] Contraseña encriptada');
 
-    const nuevoUsuario = new Usuario({ nombre, correo, contrasena: hashed, rol });
+    const nuevoUsuario = new Usuario({
+      nombre,
+      correo,
+      contrasena: hashed,
+      rol
+    });
+
     await nuevoUsuario.save();
 
-    res.status(201).json({ mensaje: 'Usuario registrado' });
+    res.status(201).json({ mensaje: '✅ Usuario registrado correctamente' });
   } catch (err) {
     console.error('[Registro] Error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Error al registrar el usuario' });
   }
 };
 
-
+// Inicio de sesión
 exports.iniciarSesion = async (req, res) => {
   try {
     const { correo, contrasena } = req.body;
+
+    // Validación básica
+    if (!correo?.trim() || !contrasena?.trim()) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: 'Correo y contraseña son obligatorios',
+      });
+    }
+
+    // Buscar usuario por correo
     const usuario = await Usuario.findOne({ correo });
-    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (!usuario) {
+      // Para evitar ataques de enumeración, usa el mismo mensaje
+      return res.status(401).json({
+        ok: false,
+        mensaje: 'Credenciales inválidas',
+      });
+    }
 
+    // Validar contraseña
     const esValido = await bcrypt.compare(contrasena, usuario.contrasena);
-    if (!esValido) return res.status(401).json({ error: 'Credenciales incorrectas' });
+    if (!esValido) {
+      return res.status(401).json({
+        ok: false,
+        mensaje: 'Credenciales inválidas',
+      });
+    }
 
-    const token = jwt.sign({ id: usuario._id, rol: usuario.rol }, process.env.JWT_SECRET);
-    res.json({ token });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    // Generar token JWT
+    const token = jwt.sign(
+      {
+        id: usuario._id,
+        rol: usuario.rol,
+        correo: usuario.correo,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '4h' }
+    );
+
+    // Responder
+    return res.status(200).json({
+      ok: true,
+      mensaje: 'Inicio de sesión exitoso',
+      token,
+      usuario: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        correo: usuario.correo,
+        rol: usuario.rol,
+      },
+    });
+  } catch (error) {
+    console.error('[Auth] Error en iniciarSesion:', error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: 'Error interno al iniciar sesión',
+    });
   }
 };

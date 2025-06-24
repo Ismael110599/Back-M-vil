@@ -1,19 +1,16 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
-const logger = require('./logger');
+
 
 const connectDB = async () => {
   try {
-    const mongoURI = `mongodb+srv://${process.env.MONGO_USR}:${process.env.MONGO_PWD}@backbomberos.ub0bc.mongodb.net/?retryWrites=true&w=majority&appName=backBomberos`;
-
-    await mongoose.connect(mongoURI, {
-      dbName: process.env.MONGO_DB,
+    await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-
-    logger.info('MongoDB connected');
+    console.log('✅ Conectado a MongoDB');
   } catch (error) {
-    logger.error(`Error connecting to MongoDB: ${error.message}`);
+    console.error('❌ Error conectando a MongoDB:', error.message);
     process.exit(1);
   }
 };

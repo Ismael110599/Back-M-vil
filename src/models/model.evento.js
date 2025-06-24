@@ -9,12 +9,15 @@ const eventoSchema = new mongoose.Schema({
   },
   fechaInicio: { type: Date, required: true },
   fechaFin: { type: Date, required: true },
+  rangoPermitido: { type: Number, default: 100 },
   creadoPor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Usuario',
     required: true,
-  },
-  creadoEn: { type: Date, default: Date.now },
+  }
+}, {
+  timestamps: true // ✅ esto está bien
 });
+
 
 module.exports = mongoose.model('Evento', eventoSchema);
