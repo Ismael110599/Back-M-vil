@@ -29,9 +29,7 @@ connectDB();
 
 
 
-// view engine setup (puedes quitar si no usas EJS)
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// No se utilizan vistas, se responde siempre en formato JSON
 
 // Middlewares generales
 app.use(logger('dev'));
@@ -61,17 +59,10 @@ app.use((err, req, res, next) => {
 
   res.status(err.status || 500);
 
-  // Si es petición a la API, responde JSON
-  if (req.originalUrl.startsWith('/api')) {
-    return res.json({
-      error: err.message || 'Error interno del servidor'
-    });
-  }
-
-  // Si es petición web, renderiza vista
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-  res.render('error');
+  // Respuesta en JSON para cualquier ruta
+  res.json({
+    error: err.message || 'Error interno del servidor'
+  });
 });
 
 module.exports = app;
