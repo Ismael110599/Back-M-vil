@@ -2,6 +2,7 @@ require('dotenv').config(); // ✅ Cargar variables de entorno primero
 const createError = require('http-errors');
 const connectDB = require('./src/config/db');
 const express = require('express');
+const http = require('http');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
@@ -17,6 +18,10 @@ const locationRoutes = require('./src/routes/locationRoutes');
 
 const app = express();
 
+// Configurar puerto
+const port = normalizePort(process.env.PORT || '80');
+app.set('port', port);
+
 
 // Configuración CORS
 app.use(cors());
@@ -29,9 +34,7 @@ connectDB();
 
 
 
-// view engine setup (puedes quitar si no usas EJS)
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// No se utilizan vistas, se responde siempre en formato JSON
 
 // Middlewares generales
 app.use(logger('dev'));
@@ -39,8 +42,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use(express.json());
 
 // 📌 Rutas API
 app.use('/api/usuarios', usuarioRoutes);
@@ -61,17 +62,46 @@ app.use((err, req, res, next) => {
 
   res.status(err.status || 500);
 
-  // Si es petición a la API, responde JSON
-  if (req.originalUrl.startsWith('/api')) {
-    return res.json({
-      error: err.message || 'Error interno del servidor'
-    });
-  }
-
-  // Si es petición web, renderiza vista
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-  res.render('error');
+  // Respuesta en JSON para cualquier ruta
+  res.json({
+    error: err.message || 'Error interno del servidor'
+  });
 });
+
+// Crear servidor y escuchar
+const server = http.createServer(app);
+server.listen(port, () => {
+  console.log(`🚀 Servidor escuchando en http://localhost:${port}`);
+});
+server.on('error', onError);
+server.on('listening', onListening);
+
+function normalizePort(val) {
+  const port = parseInt(val, 10);
+  if (isNaN(port)) return val;
+  if (port >= 0) return port;
+  return false;
+}
+
+function onError(error) {
+  if (error.syscall !== 'listen') throw error;
+  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requiere privilegios elevados');
+      process.exit(1);
+    case 'EADDRINUSE':
+      console.error(bind + ' ya está en uso');
+      process.exit(1);
+    default:
+      throw error;
+  }
+}
+
+function onListening() {
+  const addr = server.address();
+  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+  console.log('Escuchando en ' + bind);
+}
 
 module.exports = app;
