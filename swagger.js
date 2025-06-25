@@ -9,7 +9,7 @@ const doc = {
     description: 'Documentación de la API de Geoasistencia',
   },
   host: '54.210.246.199',
-  schemes: ['http'],
+  schemes: ['http', 'https'],
 }
 
 
