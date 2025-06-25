@@ -1,5 +1,4 @@
 import swaggerAutogen from 'swagger-autogen';
-import SwaggerAutogen from 'swagger-autogen';
 
 const outfile = './swagger_output.json';
 const endpointsFiles = ['./app.js'];
@@ -9,7 +8,7 @@ const doc = {
     title: 'API de Geoasistencia',
     description: 'Documentación de la API de Geoasistencia',
   },
-  host: 'localhost:80',
+  host: '54.210.246.199',
   schemes: ['http'],
 }
 
