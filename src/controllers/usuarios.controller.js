@@ -35,6 +35,54 @@ exports.registrarUsuario = async (req, res) => {
   }
 };
 
+// Actualizar usuario (sin permitir modificar el rol)
+exports.actualizarUsuario = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, correo, contrasena } = req.body;
+
+    // Buscar el usuario
+    const usuario = await Usuario.findById(id);
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Validar y actualizar campos si se proporcionan
+    if (nombre) usuario.nombre = nombre;
+
+    if (correo) {
+      // Verificar si el nuevo correo ya está en uso por otro usuario
+      const existeCorreo = await Usuario.findOne({ correo, _id: { $ne: id } });
+      if (existeCorreo) {
+        return res.status(409).json({ error: 'Ese correo ya está en uso por otro usuario' });
+      }
+      usuario.correo = correo;
+    }
+
+    if (contrasena) {
+      const hashed = await bcrypt.hash(contrasena, 10);
+      usuario.contrasena = hashed;
+    }
+
+    // Guardar cambios
+    await usuario.save();
+
+    return res.status(200).json({
+      mensaje: '✅ Usuario actualizado correctamente',
+      usuario: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        correo: usuario.correo,
+        rol: usuario.rol, // El rol se muestra, pero no se puede modificar
+      },
+    });
+  } catch (error) {
+    console.error('[UpdateUsuario] Error:', error);
+    return res.status(500).json({ error: 'Error al actualizar el usuario' });
+  }
+};
+
+
 // Inicio de sesión
 exports.iniciarSesion = async (req, res) => {
   try {
