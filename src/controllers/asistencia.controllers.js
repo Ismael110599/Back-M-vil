@@ -1,4 +1,3 @@
-
 const Evento = require('../models/model.evento');
 const Asistencia = require('../models/asistencia.model');
 
