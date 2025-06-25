@@ -14,6 +14,9 @@ const usuarioRoutes = require('./src/routes/usuarios.routes');
 const asistenciaRoutes = require('./src/routes/asistencia.routes');
 const locationRoutes = require('./src/routes/locationRoutes');
 
+const swaggerSpec = require('./src/config/swagger');
+const swaggerUi = require('swagger-ui-express');
+
 
 
 const app = express();
@@ -49,6 +52,9 @@ app.use('/api/eventos', eventoRoutes);
 app.use('/api/asistencia', asistenciaRoutes);
 app.use('/api/location', locationRoutes);
 
+
+// Documentación Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 // Capturar 404
