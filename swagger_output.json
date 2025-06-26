@@ -168,7 +168,23 @@
                   "example": "any"
                 },
                 "ubicacion": {
-                  "example": "any"
+                  "type": "object",
+                  "properties": {
+                    "latitud": {
+                      "type": "number",
+                      "format": "float",
+                      "example": -2.170998
+                    },
+                    "longitud": {
+                      "type": "number",
+                      "format": "float",
+                      "example": -79.922359
+                    }
+                  },
+                  "required": [
+                    "latitud",
+                    "longitud"
+                  ]
                 },
                 "fechaInicio": {
                   "example": "any"
@@ -243,7 +259,23 @@
                   "example": "any"
                 },
                 "ubicacion": {
-                  "example": "any"
+                  "type": "object",
+                  "properties": {
+                    "latitud": {
+                      "type": "number",
+                      "format": "float",
+                      "example": -2.170998
+                    },
+                    "longitud": {
+                      "type": "number",
+                      "format": "float",
+                      "example": -79.922359
+                    }
+                  },
+                  "required": [
+                    "latitud",
+                    "longitud"
+                  ]
                 },
                 "fechaInicio": {
                   "example": "any"
