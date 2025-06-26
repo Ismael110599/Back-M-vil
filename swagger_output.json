@@ -90,6 +90,33 @@
         }
       }
     },
+    "/api/usuarios/perfil/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/usuarios/{id}": {
       "put": {
         "description": "",
@@ -168,23 +195,7 @@
                   "example": "any"
                 },
                 "ubicacion": {
-                  "type": "object",
-                  "properties": {
-                    "latitud": {
-                      "type": "number",
-                      "format": "float",
-                      "example": -2.170998
-                    },
-                    "longitud": {
-                      "type": "number",
-                      "format": "float",
-                      "example": -79.922359
-                    }
-                  },
-                  "required": [
-                    "latitud",
-                    "longitud"
-                  ]
+                  "example": "any"
                 },
                 "fechaInicio": {
                   "example": "any"
@@ -259,23 +270,7 @@
                   "example": "any"
                 },
                 "ubicacion": {
-                  "type": "object",
-                  "properties": {
-                    "latitud": {
-                      "type": "number",
-                      "format": "float",
-                      "example": -2.170998
-                    },
-                    "longitud": {
-                      "type": "number",
-                      "format": "float",
-                      "example": -79.922359
-                    }
-                  },
-                  "required": [
-                    "latitud",
-                    "longitud"
-                  ]
+                  "example": "any"
                 },
                 "fechaInicio": {
                   "example": "any"

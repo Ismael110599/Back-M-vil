@@ -146,3 +146,36 @@ exports.iniciarSesion = async (req, res) => {
     });
   }
 };
+
+
+// Obtener perfil del usuario autenticado
+exports.obtenerPerfil = async (req, res) => {
+  try {
+    const { id } = req.params; // Obtener la ID del usuario desde el cuerpo de la petición
+
+    if (!id) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: 'Se requiere el ID del usuario ',
+      });
+    }
+
+    const usuario = await Usuario.findById(id).select('-contrasena'); // Excluye la contraseña
+
+    if (!usuario) {
+      return res.status(404).json({ ok: false, mensaje: 'Usuario no encontrado' });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      usuario,
+    });
+  } catch (error) {
+    console.error('[Perfil] Error al obtener el perfil:', error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: 'Error al obtener el perfil del usuario',
+    });
+  }
+};
+
