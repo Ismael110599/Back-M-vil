@@ -31,7 +31,7 @@ const asistenciaSchema = new mongoose.Schema({
   },
   estado: {
     type: String,
-    enum: ['presente', 'ausente'],
+    enum: ['Presente', 'Ausente', 'Pendiente'],
     default: 'presente'
   },
   fueraDesde: Date
