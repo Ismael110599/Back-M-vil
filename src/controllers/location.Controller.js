@@ -1,5 +1,7 @@
 // controllers/locationController.js
 const UserLocation = require('../models/model.UserLocation');
+const Evento = require('../models/model.evento');
+const Asistencia = require('../models/asistencia.model');
 const { incrementMetric } = require("../utils/dashboard.metrics");
 
 // Coordenadas del punto central de geocerca
@@ -24,14 +26,27 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 exports.updateUserLocation = async (req, res) => {
   try {
-    const { userId, latitude, longitude, previousState } = req.body;
+    const { userId, latitude, longitude, previousState, eventoId } = req.body;
 
     if (!userId || latitude == null || longitude == null) {
       return res.status(400).json({ error: 'Faltan datos obligatorios.' });
     }
 
-    const distance = calculateDistance(latitude, longitude, referenceLat, referenceLon);
-    const insideGeofence = distance <= GEOFENCE_RADIUS;
+    let lat = referenceLat;
+    let lon = referenceLon;
+    let rango = GEOFENCE_RADIUS;
+
+    if (eventoId) {
+      const evento = await Evento.findById(eventoId);
+      if (evento) {
+        lat = evento.ubicacion.latitud;
+        lon = evento.ubicacion.longitud;
+        rango = evento.rangoPermitido;
+      }
+    }
+
+    const distance = calculateDistance(latitude, longitude, lat, lon);
+    const insideGeofence = distance <= rango;
 
     // Solo guarda si hay cambio (ej. entró o salió)
     if (insideGeofence !== previousState) {
@@ -42,6 +57,27 @@ exports.updateUserLocation = async (req, res) => {
         insideGeofence
       });
       await incrementMetric("locations");
+    }
+
+    if (eventoId) {
+      const asistencia = await Asistencia.findOne({ estudiante: userId, evento: eventoId });
+      if (asistencia) {
+        if (!insideGeofence) {
+          if (!asistencia.fueraDesde) {
+            asistencia.fueraDesde = new Date();
+          } else if (Date.now() - asistencia.fueraDesde.getTime() >= 10 * 60 * 1000) {
+            asistencia.estado = 'ausente';
+          }
+          asistencia.dentroDelRango = false;
+        } else {
+          if (asistencia.fueraDesde && Date.now() - asistencia.fueraDesde.getTime() >= 10 * 60 * 1000) {
+            asistencia.estado = 'ausente';
+          }
+          asistencia.dentroDelRango = true;
+          asistencia.fueraDesde = null;
+        }
+        await asistencia.save();
+      }
     }
 
     return res.json({ insideGeofence, distance });

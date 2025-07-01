@@ -30,11 +30,22 @@ exports.registrarAsistencia = async (req, res) => {
 
     const dentroDelRango = distancia <= evento.rangoPermitido;
 
+    const ahora = Date.now();
+    const inicioEvento = new Date(evento.fechaInicio).getTime();
+
+    if (!dentroDelRango && ahora - inicioEvento <= 10 * 60 * 1000) {
+      return res.status(400).json({
+        mensaje: 'Fuera del rango. Tienes 10 minutos para regresar y marcar asistencia'
+      });
+    }
+
     const asistencia = new Asistencia({
       estudiante: estudianteId,
       evento: eventoId,
       coordenadas: { latitud, longitud },
-      dentroDelRango
+      dentroDelRango,
+      estado: dentroDelRango ? 'presente' : 'ausente',
+      fueraDesde: dentroDelRango ? undefined : new Date()
     });
 
     await asistencia.save();

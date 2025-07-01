@@ -29,6 +29,12 @@ const asistenciaSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
+  estado: {
+    type: String,
+    enum: ['presente', 'ausente'],
+    default: 'presente'
+  },
+  fueraDesde: Date
 }, {
   timestamps: true // Opcional: agrega createdAt y updatedAt automáticamente
 });
