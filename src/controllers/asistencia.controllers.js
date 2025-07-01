@@ -32,11 +32,6 @@ exports.registrarAsistencia = async (req, res) => {
 
     const ahora = Date.now();
     const inicioEvento = new Date(evento.fechaInicio).getTime();
-
-    if (!dentroDelRango && ahora - inicioEvento <= 10 * 60 * 1000) {
-      return res.status(400).json({
-        mensaje: 'Fuera del rango. Tienes 10 minutos para regresar y marcar asistencia'
-      });
     }
 
     const asistencia = new Asistencia({
@@ -44,14 +39,12 @@ exports.registrarAsistencia = async (req, res) => {
       evento: eventoId,
       coordenadas: { latitud, longitud },
       dentroDelRango,
-      estado: dentroDelRango ? 'presente' : 'ausente',
-      fueraDesde: dentroDelRango ? undefined : new Date()
     });
 
     await asistencia.save();
     await incrementMetric("asistencias");
     res.status(201).json({
-      mensaje: dentroDelRango ? 'Asistencia registrada' : 'Fuera del rango',
+      mensaje: dentroDelRango ? 'Asistencia registrada' : estado === 'pendiente' ? 'Asistencia en espera' : 'Fuera del rango',
       asistencia
     });
   } catch (err) {
