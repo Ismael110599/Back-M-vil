@@ -10,6 +10,17 @@ exports.registrarAsistencia = async (req, res) => {
     const evento = await Evento.findById(eventoId);
     if (!evento) return res.status(404).json({ mensaje: 'Evento no encontrado' });
 
+    // Validar que el estudiante no haya registrado asistencia previamente
+    const asistenciaExistente = await Asistencia.findOne({
+      estudiante: estudianteId,
+      evento: eventoId,
+    });
+    if (asistenciaExistente) {
+      return res.status(400).json({
+        mensaje: 'El estudiante ya registró asistencia para este evento',
+      });
+    }
+
     const distancia = calcularDistancia(
       evento.ubicacion.latitud,
       evento.ubicacion.longitud,
@@ -19,17 +30,34 @@ exports.registrarAsistencia = async (req, res) => {
 
     const dentroDelRango = distancia <= evento.rangoPermitido;
 
+    const ahora = Date.now();
+    const inicioEvento = new Date(evento.fechaInicio).getTime();
+
+    let estado = 'presente';
+    let pendienteDesde;
+
+    if (!dentroDelRango) {
+      if (ahora - inicioEvento <= 10 * 60 * 1000) {
+        estado = 'pendiente';
+        pendienteDesde = new Date();
+      } else {
+        estado = 'ausente';
+      }
+    }
+
     const asistencia = new Asistencia({
       estudiante: estudianteId,
       evento: eventoId,
       coordenadas: { latitud, longitud },
-      dentroDelRango
+      dentroDelRango,
+      estado,
+      pendienteDesde
     });
 
     await asistencia.save();
     await incrementMetric("asistencias");
     res.status(201).json({
-      mensaje: dentroDelRango ? 'Asistencia registrada' : 'Fuera del rango',
+      mensaje: dentroDelRango ? 'Asistencia registrada' : estado === 'pendiente' ? 'Asistencia en espera' : 'Fuera del rango',
       asistencia
     });
   } catch (err) {

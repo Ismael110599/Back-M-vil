@@ -1,8 +1,6 @@
 const Evento = require('../models/model.evento');
-const { stack } = require('../routes/locationRoutes');
 const { incrementMetric } = require("../utils/dashboard.metrics");
 
-// Crear un nuevo evento (solo docentes)
 // Crear un nuevo evento (solo docentes)
 exports.crearEvento = async (req, res) => {
   try {
@@ -62,10 +60,8 @@ exports.obtenerEventos = async (req, res) => {
       error: err.message,
       stack: err.stack, // información detallada para debugging
     });
-    console.log('Tipo de Evento:', typeof Evento);
-  console.log('Contenido de Evento:', Evento);
 
-  }
+    }
 };
 
 // Obtener evento por ID
