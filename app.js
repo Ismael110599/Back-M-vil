@@ -70,7 +70,7 @@ app.use((req, res, next) => {
 
 // Manejo de errores
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err.message);
+  console.info('❌ Error:', err.message);
 
   res.status(err.status || 500);
 
@@ -84,12 +84,13 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 initWebSocket(server);
 server.listen(port, () => {
-  console.log(`🚀 Servidor escuchando en http://localhost:${port}`);
+  console.info(`🚀 Servidor escuchando en http://localhost:${port}`);
 });
 server.on('error', onError);
 server.on('listening', onListening);
 
 function normalizePort(val) {
+
   const port = parseInt(val, 10);
   if (isNaN(port)) return val;
   if (port >= 0) return port;
@@ -114,7 +115,7 @@ function onError(error) {
 function onListening() {
   const addr = server.address();
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-  console.log('Escuchando en ' + bind);
+  console.info('Escuchando en ' + bind);
 }
 
 module.exports = app;

@@ -1,9 +1,10 @@
 let wss;
+const logger = require('./logger');
 
 function initWebSocket(server) {
   const WebSocket = require('ws');
   wss = new WebSocket.Server({ server });
-  console.log('🧩 WebSocket server iniciado');
+  logger.info('🧩 WebSocket server iniciado');
 }
 
 function broadcast(data) {
