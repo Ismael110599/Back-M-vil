@@ -14,6 +14,7 @@ const usuarioRoutes = require('./src/routes/usuarios.routes');
 const asistenciaRoutes = require('./src/routes/asistencia.routes');
 const locationRoutes = require('./src/routes/locationRoutes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
+require('./src/cron/asistenciaCron');
 
 const { initWebSocket } = require('./src/config/websocket');
 
