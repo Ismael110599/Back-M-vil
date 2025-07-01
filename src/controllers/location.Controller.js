@@ -63,22 +63,6 @@ exports.updateUserLocation = async (req, res) => {
       const asistencia = await Asistencia.findOne({ estudiante: userId, evento: eventoId });
       if (asistencia) {
         if (!insideGeofence) {
-          if (!asistencia.pendienteDesde) {
-            asistencia.pendienteDesde = new Date();
-          } else if (Date.now() - asistencia.pendienteDesde.getTime() >= 10 * 60 * 1000) {
-            asistencia.estado = 'ausente';
-          } else {
-            asistencia.estado = 'pendiente';
-          }
-          asistencia.dentroDelRango = false;
-        } else {
-          if (asistencia.pendienteDesde && Date.now() - asistencia.pendienteDesde.getTime() >= 10 * 60 * 1000) {
-            asistencia.estado = 'ausente';
-          } else {
-            asistencia.estado = 'presente';
-          }
-          asistencia.dentroDelRango = true;
-          asistencia.pendienteDesde = null;
         }
         await asistencia.save();
       }

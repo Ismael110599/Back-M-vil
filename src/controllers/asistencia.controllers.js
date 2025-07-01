@@ -32,17 +32,6 @@ exports.registrarAsistencia = async (req, res) => {
 
     const ahora = Date.now();
     const inicioEvento = new Date(evento.fechaInicio).getTime();
-
-    let estado = 'presente';
-    let pendienteDesde;
-
-    if (!dentroDelRango) {
-      if (ahora - inicioEvento <= 10 * 60 * 1000) {
-        estado = 'pendiente';
-        pendienteDesde = new Date();
-      } else {
-        estado = 'ausente';
-      }
     }
 
     const asistencia = new Asistencia({
@@ -50,8 +39,6 @@ exports.registrarAsistencia = async (req, res) => {
       evento: eventoId,
       coordenadas: { latitud, longitud },
       dentroDelRango,
-      estado,
-      pendienteDesde
     });
 
     await asistencia.save();
