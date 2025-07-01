@@ -1,5 +1,6 @@
 const Evento = require('../models/model.evento');
 const { stack } = require('../routes/locationRoutes');
+const { incrementMetric } = require("../utils/dashboard.metrics");
 
 // Crear un nuevo evento (solo docentes)
 // Crear un nuevo evento (solo docentes)
@@ -33,6 +34,7 @@ exports.crearEvento = async (req, res) => {
     });
 
     await nuevoEvento.save();
+    await incrementMetric("eventos");
 
     res.status(201).json({
       mensaje: 'Evento creado exitosamente',
@@ -128,6 +130,7 @@ exports.eliminarEvento = async (req, res) => {
     }
 
     await evento.deleteOne();
+    await incrementMetric("eventos", -1);
     res.status(200).json({ mensaje: 'Evento eliminado correctamente' });
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al eliminar evento', error: err.message });

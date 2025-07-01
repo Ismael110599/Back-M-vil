@@ -1,5 +1,6 @@
 const Evento = require('../models/model.evento');
 const Asistencia = require('../models/asistencia.model');
+const { incrementMetric } = require("../utils/dashboard.metrics");
 
 exports.registrarAsistencia = async (req, res) => {
   const { eventoId, latitud, longitud } = req.body;
@@ -26,6 +27,7 @@ exports.registrarAsistencia = async (req, res) => {
     });
 
     await asistencia.save();
+    await incrementMetric("asistencias");
     res.status(201).json({
       mensaje: dentroDelRango ? 'Asistencia registrada' : 'Fuera del rango',
       asistencia
