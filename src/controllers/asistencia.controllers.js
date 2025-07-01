@@ -7,46 +7,71 @@ exports.registrarAsistencia = async (req, res) => {
   const estudianteId = req.user.id;
 
   try {
+    // Buscar evento
     const evento = await Evento.findById(eventoId);
-    if (!evento) return res.status(404).json({ mensaje: 'Evento no encontrado' });
+    if (!evento) {
+      return res.status(404).json({ mensaje: 'Evento no encontrado' });
+    }
 
-    // Validar que el estudiante no haya registrado asistencia previamente
+    // Verificar si ya registró asistencia
     const asistenciaExistente = await Asistencia.findOne({
       estudiante: estudianteId,
       evento: eventoId,
     });
+
     if (asistenciaExistente) {
       return res.status(400).json({
         mensaje: 'El estudiante ya registró asistencia para este evento',
       });
     }
 
+    // Calcular distancia
     const distancia = calcularDistancia(
       evento.ubicacion.latitud,
       evento.ubicacion.longitud,
       latitud,
       longitud
     );
-
     const dentroDelRango = distancia <= evento.rangoPermitido;
 
+    // Lógica de estado según hora y rango
     const ahora = Date.now();
-    const inicioEvento = new Date(evento.fechaInicio).getTime();
+    const inicioEvento = new Date(evento.horaInicio).getTime(); // <== CORREGIDO
+
+    let estado = 'Ausente';
+    if (dentroDelRango) {
+      estado = 'Presente';
+    } else {
+      const diferencia = ahora - inicioEvento;
+      if (diferencia >= 0 && diferencia <= 10 * 60 * 1000) {
+        estado = 'Pendiente';
+      } else if (diferencia < 0) {
+        estado = 'Pendiente';
+      }
     }
 
+    // Guardar asistencia
     const asistencia = new Asistencia({
       estudiante: estudianteId,
       evento: eventoId,
       coordenadas: { latitud, longitud },
       dentroDelRango,
+      Estado: estado
     });
 
     await asistencia.save();
     await incrementMetric("asistencias");
+
+    // Responder
     res.status(201).json({
-      mensaje: dentroDelRango ? 'Asistencia registrada' : estado === 'pendiente' ? 'Asistencia en espera' : 'Fuera del rango',
+      mensaje: estado === 'Presente'
+        ? 'Asistencia registrada correctamente'
+        : estado === 'Pendiente'
+        ? 'Estás fuera del área, tienes 10 minutos para ingresar y registrar tu asistencia'
+        : 'Estás fuera del rango y fuera de tiempo, asistencia marcada como Ausente',
       asistencia
     });
+
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al registrar asistencia', error: err.message });
   }

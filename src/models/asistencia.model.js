@@ -31,7 +31,7 @@ const asistenciaSchema = new mongoose.Schema({
   },
   estado: {
     type: String,
-}, {
+  }}, {
   timestamps: true // Opcional: agrega createdAt y updatedAt automáticamente
 });
 
