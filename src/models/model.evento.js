@@ -16,8 +16,7 @@ const eventoSchema = new mongoose.Schema({
     required: true,
   }
 }, {
-  timestamps: true // ✅ esto está bien
+  timestamps: true
 });
-
 
 module.exports = mongoose.model('Evento', eventoSchema);
