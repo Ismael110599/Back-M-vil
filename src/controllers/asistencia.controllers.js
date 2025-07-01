@@ -10,6 +10,17 @@ exports.registrarAsistencia = async (req, res) => {
     const evento = await Evento.findById(eventoId);
     if (!evento) return res.status(404).json({ mensaje: 'Evento no encontrado' });
 
+    // Validar que el estudiante no haya registrado asistencia previamente
+    const asistenciaExistente = await Asistencia.findOne({
+      estudiante: estudianteId,
+      evento: eventoId,
+    });
+    if (asistenciaExistente) {
+      return res.status(400).json({
+        mensaje: 'El estudiante ya registró asistencia para este evento',
+      });
+    }
+
     const distancia = calcularDistancia(
       evento.ubicacion.latitud,
       evento.ubicacion.longitud,

@@ -33,4 +33,7 @@ const asistenciaSchema = new mongoose.Schema({
   timestamps: true // Opcional: agrega createdAt y updatedAt automáticamente
 });
 
+// Evita múltiples asistencias del mismo estudiante en un evento
+asistenciaSchema.index({ estudiante: 1, evento: 1 }, { unique: true });
+
 module.exports = mongoose.model('Asistencia', asistenciaSchema);
