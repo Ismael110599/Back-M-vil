@@ -1,6 +1,7 @@
 const Usuario = require('../models/Model.user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { incrementMetric } = require("../utils/dashboard.metrics");
 
 // Registro de usuario
 exports.registrarUsuario = async (req, res) => {
@@ -27,6 +28,7 @@ exports.registrarUsuario = async (req, res) => {
     });
 
     await nuevoUsuario.save();
+    await incrementMetric("usuarios");
 
     res.status(201).json({ mensaje: '✅ Usuario registrado correctamente' });
   } catch (err) {

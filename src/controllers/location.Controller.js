@@ -1,5 +1,6 @@
 // controllers/locationController.js
 const UserLocation = require('../models/model.UserLocation');
+const { incrementMetric } = require("../utils/dashboard.metrics");
 
 // Coordenadas del punto central de geocerca
 const referenceLat = -0.1807;
@@ -40,6 +41,7 @@ exports.updateUserLocation = async (req, res) => {
         longitude,
         insideGeofence
       });
+      await incrementMetric("locations");
     }
 
     return res.json({ insideGeofence, distance });
