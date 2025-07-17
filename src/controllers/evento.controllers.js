@@ -8,10 +8,13 @@ exports.crearEvento = async (req, res) => {
       titulo,
       descripcion,
       ubicacion,
-      fechaInicio,
-      fechaFin,
+      fecha,
+      horaInicio,
+      horaFinal,
+      activo,
       rangoPermitido
     } = req.body;
+
 
     // Validación básica
     if (!titulo || !ubicacion?.latitud || !ubicacion?.longitud || !fechaInicio || !fechaFin) {
