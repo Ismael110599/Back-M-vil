@@ -6,6 +6,7 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "@nestjs/swagger": "^11.2.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "cookie-parser": "~1.4.4",
@@ -30,3 +31,7 @@
     "swagger-autogen": "^2.23.7"
   }
 }
+
+
+
+
