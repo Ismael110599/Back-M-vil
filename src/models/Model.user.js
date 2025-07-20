@@ -13,6 +13,14 @@ const usuarioSchema = new mongoose.Schema({
     enum: ['estudiante', 'docente', 'admin'],
     default: 'estudiante',
   },
+  activo: {
+    type: Boolean,
+    default: true,
+  },
+  eliminado: {
+    type: Boolean,
+    default: false,
+  },
   creadoEn: { type: Date, default: Date.now },
 });
 

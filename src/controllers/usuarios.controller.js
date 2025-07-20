@@ -228,3 +228,130 @@ exports.verificarCorreo = async (req, res) => {
   }
 };
 
+// Listar docentes con paginación y filtros
+exports.listarDocentes = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, activo } = req.query;
+    const filtro = { rol: 'docente', eliminado: false };
+    if (activo !== undefined) filtro.activo = activo === 'true';
+
+    const [docentes, total] = await Promise.all([
+      Usuario.find(filtro)
+        .skip((page - 1) * parseInt(limit))
+        .limit(parseInt(limit))
+        .select('-contrasena'),
+      Usuario.countDocuments(filtro),
+    ]);
+
+    res.status(200).json({ total, docentes });
+  } catch (error) {
+    console.error('[ListarDocentes] Error:', error);
+    res.status(500).json({ mensaje: 'Error al listar docentes' });
+  }
+};
+
+// Cambiar estado activo/inactivo de un usuario
+exports.cambiarEstadoUsuario = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.params.id);
+    if (!usuario || usuario.eliminado) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    usuario.activo = Boolean(req.body.activo);
+    await usuario.save();
+    res.status(200).json({ mensaje: 'Estado actualizado', activo: usuario.activo });
+  } catch (error) {
+    console.error('[CambiarEstado] Error:', error);
+    res.status(500).json({ mensaje: 'Error al cambiar estado del usuario' });
+  }
+};
+
+// Buscar usuarios por nombre y rol
+exports.buscarUsuarios = async (req, res) => {
+  try {
+    const { query = '', rol } = req.query;
+    const filtro = { eliminado: false };
+    if (rol) filtro.rol = rol;
+    if (query) filtro.nombre = { $regex: query, $options: 'i' };
+
+    const usuarios = await Usuario.find(filtro).select('-contrasena').limit(20);
+    res.status(200).json(usuarios);
+  } catch (error) {
+    console.error('[BuscarUsuarios] Error:', error);
+    res.status(500).json({ mensaje: 'Error al buscar usuarios' });
+  }
+};
+
+// Eliminación lógica de usuario (solo admin)
+exports.eliminarUsuario = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.params.id);
+    if (!usuario || usuario.eliminado) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    usuario.eliminado = true;
+    usuario.activo = false;
+    await usuario.save();
+    res.status(200).json({ mensaje: 'Usuario eliminado' });
+  } catch (error) {
+    console.error('[EliminarUsuario] Error:', error);
+    res.status(500).json({ mensaje: 'Error al eliminar usuario' });
+  }
+};
+
+// Contar usuarios por rol
+exports.obtenerEstadisticasUsuarios = async (req, res) => {
+  try {
+    const roles = ['estudiante', 'docente', 'admin'];
+    const stats = {};
+    for (const rol of roles) {
+      stats[rol] = await Usuario.countDocuments({ rol, eliminado: false });
+    }
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error('[EstadisticasUsuarios] Error:', error);
+    res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
+  }
+};
+
+// Edición completa de perfil
+exports.editarPerfilCompleto = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const usuario = await Usuario.findById(id);
+    if (!usuario || usuario.eliminado) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    if (req.user.id !== id && req.user.rol !== 'admin') {
+      return res.status(403).json({ mensaje: 'No autorizado' });
+    }
+    if (data.nombre !== undefined) usuario.nombre = data.nombre;
+    if (data.correo !== undefined) usuario.correo = data.correo;
+    if (data.rol !== undefined && req.user.rol === 'admin') usuario.rol = data.rol;
+    if (data.contrasena) {
+      usuario.contrasena = await bcrypt.hash(data.contrasena, 10);
+    }
+    await usuario.save();
+    res.status(200).json({ mensaje: 'Perfil actualizado', usuario: { id: usuario._id, nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol, activo: usuario.activo } });
+  } catch (error) {
+    console.error('[EditarPerfilCompleto] Error:', error);
+    res.status(500).json({ mensaje: 'Error al actualizar perfil' });
+  }
+};
+
+// Perfil detallado con eventos creados
+exports.perfilDetallado = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.params.id).select('-contrasena');
+    if (!usuario || usuario.eliminado) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    const eventos = await require('../models/model.evento').find({ creadorId: usuario._id });
+    res.status(200).json({ usuario, eventos });
+  } catch (error) {
+    console.error('[PerfilDetallado] Error:', error);
+    res.status(500).json({ mensaje: 'Error al obtener perfil detallado' });
+  }
+};
+
