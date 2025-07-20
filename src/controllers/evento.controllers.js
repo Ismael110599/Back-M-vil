@@ -5,33 +5,46 @@ const { incrementMetric } = require("../utils/dashboard.metrics");
 exports.crearEvento = async (req, res) => {
   try {
     const {
-      titulo,
+      nombre,
+      tipo,
+      fechaInicio,
+      fechaFin,
+      lugar,
       descripcion,
-      ubicacion,
-      fecha,
-      horaInicio,
-      horaFinal,
-      activo,
-      rangoPermitido
+      capacidadMaxima,
+      coordenadas,
+      politicasAsistencia
     } = req.body;
 
 
     // Validación básica
-    if (!titulo || !ubicacion?.latitud || !ubicacion?.longitud || !fechaInicio || !fechaFin) {
+    if (
+      !nombre ||
+      !tipo ||
+      !lugar ||
+      !coordenadas?.latitud ||
+      !coordenadas?.longitud ||
+      !fechaInicio ||
+      !fechaFin
+    ) {
       return res.status(400).json({ mensaje: 'Faltan campos obligatorios del evento' });
     }
 
     const nuevoEvento = new Evento({
-      titulo,
+      nombre,
+      tipo,
       descripcion,
-      ubicacion: {
-        latitud: parseFloat(ubicacion.latitud),
-        longitud: parseFloat(ubicacion.longitud)
+      lugar,
+      capacidadMaxima,
+      creadorId: req.user.id,
+      coordenadas: {
+        latitud: parseFloat(coordenadas.latitud),
+        longitud: parseFloat(coordenadas.longitud),
+        radio: coordenadas.radio || 100
       },
+      politicasAsistencia,
       fechaInicio: new Date(fechaInicio),
-      fechaFin: new Date(fechaFin),
-      rangoPermitido: rangoPermitido || 100, // opcional
-      creadoPor: req.user.id
+      fechaFin: new Date(fechaFin)
     });
 
     await nuevoEvento.save();
@@ -54,7 +67,7 @@ exports.crearEvento = async (req, res) => {
 // Obtener todos los eventos
 exports.obtenerEventos = async (req, res) => {
   try {
-    const eventos = await Evento.find({ activo: true }).populate('creadoPor', 'nombre email rol');
+    const eventos = await Evento.find({ estado: 'activo' }).populate('creadorId', 'nombre email rol');
     res.status(200).json(eventos);
   } catch (err) {
     console.error('Error al obtener eventos:', err); // imprime el error completo en consola
@@ -70,7 +83,7 @@ exports.obtenerEventos = async (req, res) => {
 // Obtener evento por ID
 exports.obtenerEventoPorId = async (req, res) => {
   try {
-    const evento = await Evento.findOne({ _id: req.params.id, activo: true }).populate('creadoPor', 'nombre email');
+    const evento = await Evento.findOne({ _id: req.params.id, estado: 'activo' }).populate('creadorId', 'nombre email');
     if (!evento) return res.status(404).json({ mensaje: 'Evento no encontrado' });
     res.status(200).json(evento);
   } catch (err) {
@@ -82,32 +95,43 @@ exports.obtenerEventoPorId = async (req, res) => {
 exports.actualizarEvento = async (req, res) => {
   try {
     const evento = await Evento.findById(req.params.id);
-    if (!evento || !evento.activo) {
+    if (!evento || evento.estado !== 'activo') {
       return res.status(404).json({ mensaje: 'Evento no encontrado' });
     }
 
     // Verificar permisos
-    if (evento.creadoPor.toString() !== req.user.id && req.user.rol !== 'admin' && req.user.rol !== 'docente') {
+    if (evento.creadorId.toString() !== req.user.id && req.user.rol !== 'admin' && req.user.rol !== 'docente') {
       return res.status(403).json({ mensaje: 'No tienes permiso para modificar este evento' });
     }
 
     const {
-      titulo,
-      descripcion,
-      ubicacion,
+      nombre,
+      tipo,
       fechaInicio,
       fechaFin,
-      rangoPermitido
+      lugar,
+      descripcion,
+      capacidadMaxima,
+      coordenadas,
+      politicasAsistencia,
+      estado
     } = req.body;
 
     // Actualizar solo campos válidos
-    if (titulo !== undefined) evento.titulo = titulo;
+    if (nombre !== undefined) evento.nombre = nombre;
+    if (tipo !== undefined) evento.tipo = tipo;
+    if (lugar !== undefined) evento.lugar = lugar;
     if (descripcion !== undefined) evento.descripcion = descripcion;
-    if (ubicacion?.latitud !== undefined) evento.ubicacion.latitud = parseFloat(ubicacion.latitud);
-    if (ubicacion?.longitud !== undefined) evento.ubicacion.longitud = parseFloat(ubicacion.longitud);
+    if (capacidadMaxima !== undefined) evento.capacidadMaxima = capacidadMaxima;
+    if (coordenadas?.latitud !== undefined) evento.coordenadas.latitud = parseFloat(coordenadas.latitud);
+    if (coordenadas?.longitud !== undefined) evento.coordenadas.longitud = parseFloat(coordenadas.longitud);
+    if (coordenadas?.radio !== undefined) evento.coordenadas.radio = parseFloat(coordenadas.radio);
+    if (politicasAsistencia) {
+      evento.politicasAsistencia = { ...evento.politicasAsistencia, ...politicasAsistencia };
+    }
     if (fechaInicio !== undefined) evento.fechaInicio = new Date(fechaInicio);
     if (fechaFin !== undefined) evento.fechaFin = new Date(fechaFin);
-    if (rangoPermitido !== undefined) evento.rangoPermitido = parseFloat(rangoPermitido);
+    if (estado !== undefined) evento.estado = estado;
 
     await evento.save();
 
@@ -122,13 +146,13 @@ exports.actualizarEvento = async (req, res) => {
 exports.eliminarEvento = async (req, res) => {
   try {
     const evento = await Evento.findById(req.params.id);
-    if (!evento || !evento.activo) return res.status(404).json({ mensaje: 'Evento no encontrado' });
+    if (!evento || evento.estado !== 'activo') return res.status(404).json({ mensaje: 'Evento no encontrado' });
 
-    if (evento.creadoPor.toString() !== req.user.id && req.user.rol !== 'admin', 'docente') {
+    if (evento.creadorId.toString() !== req.user.id && req.user.rol !== 'admin' && req.user.rol !== 'docente') {
       return res.status(403).json({ mensaje: 'No tienes permiso para eliminar este evento' });
     }
 
-    evento.activo = false;
+    evento.estado = 'cancelado';
     await evento.save();
     await incrementMetric("eventos", -1);
     res.status(200).json({ mensaje: 'Evento eliminado correctamente' });

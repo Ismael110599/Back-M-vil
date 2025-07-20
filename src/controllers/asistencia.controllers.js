@@ -8,7 +8,7 @@ exports.registrarAsistencia = async (req, res) => {
 
   try {
     // Buscar evento
-    const evento = await Evento.findOne({ _id: eventoId, activo: true });
+    const evento = await Evento.findOne({ _id: eventoId, estado: 'activo' });
     if (!evento) {
       return res.status(404).json({ mensaje: 'Evento no encontrado' });
     }
@@ -27,16 +27,16 @@ exports.registrarAsistencia = async (req, res) => {
 
     // Calcular distancia
     const distancia = calcularDistancia(
-      evento.ubicacion.latitud,
-      evento.ubicacion.longitud,
+      evento.coordenadas.latitud,
+      evento.coordenadas.longitud,
       latitud,
       longitud
     );
-    const dentroDelRango = distancia <= evento.rangoPermitido;
+    const dentroDelRango = distancia <= evento.coordenadas.radio;
 
     // Lógica de estado según hora y rango
     const ahora = Date.now();
-    const inicioEvento = new Date(evento.horaInicio).getTime(); // <== CORREGIDO
+    const inicioEvento = new Date(evento.fechaInicio).getTime();
 
     let estado = 'Ausente';
     if (dentroDelRango) {
@@ -56,7 +56,7 @@ exports.registrarAsistencia = async (req, res) => {
       evento: eventoId,
       coordenadas: { latitud, longitud },
       dentroDelRango,
-      Estado: estado
+      estado
     });
 
     await asistencia.save();
