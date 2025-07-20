@@ -37,11 +37,11 @@ exports.updateUserLocation = async (req, res) => {
     let rango = GEOFENCE_RADIUS;
 
     if (eventoId) {
-      const evento = await Evento.findOne({ _id: eventoId, activo: true });
+      const evento = await Evento.findOne({ _id: eventoId, estado: 'activo' });
       if (evento) {
-        lat = evento.ubicacion.latitud;
-        lon = evento.ubicacion.longitud;
-        rango = evento.rangoPermitido;
+        lat = evento.coordenadas.latitud;
+        lon = evento.coordenadas.longitud;
+        rango = evento.coordenadas.radio;
       }
     }
 
