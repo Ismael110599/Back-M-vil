@@ -1,6 +1,6 @@
 const PDFDocument = require('pdfkit');
 
-async function generateEventPDFBase64(evento, metrics = []) {
+async function generateEventPDFBase64(evento, dashboardMetrics = [], eventMetrics = null) {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument();
@@ -24,11 +24,22 @@ async function generateEventPDFBase64(evento, metrics = []) {
       if (evento.descripcion) doc.text(`Descripcion: ${evento.descripcion}`);
       doc.moveDown();
 
-      if (metrics && metrics.length) {
+      if (dashboardMetrics && Array.isArray(dashboardMetrics) && dashboardMetrics.length) {
         doc.text('Métricas Dashboard:', { underline: true });
-        metrics.forEach(m => {
+        dashboardMetrics.forEach(m => {
           doc.text(`${m.metric}: ${m.value}`);
         });
+        doc.moveDown();
+      }
+
+      if (eventMetrics && typeof eventMetrics === 'object') {
+        doc.text('Métricas Evento:', { underline: true });
+        if (eventMetrics.dentroDelRango !== undefined) {
+          doc.text(`Dentro del rango: ${eventMetrics.dentroDelRango}`);
+        }
+        if (eventMetrics.fueraDelRango !== undefined) {
+          doc.text(`Fuera del rango: ${eventMetrics.fueraDelRango}`);
+        }
       }
 
       doc.end();
