@@ -3,6 +3,7 @@ const UserLocation = require('../models/model.UserLocation');
 const Evento = require('../models/model.evento');
 const Asistencia = require('../models/asistencia.model');
 const { incrementMetric } = require("../utils/dashboard.metrics");
+const { incrementEventMetric } = require("../utils/event.metrics");
 
 // Coordenadas del punto central de geocerca
 const referenceLat = -0.1807;
@@ -57,6 +58,15 @@ exports.updateUserLocation = async (req, res) => {
         insideGeofence
       });
       await incrementMetric("locations");
+      if (eventoId) {
+        // Ajustar conteo de estudiantes dentro y fuera del rango
+        if (previousState === undefined) {
+          await incrementEventMetric(eventoId, insideGeofence ? 'dentroDelRango' : 'fueraDelRango');
+        } else {
+          await incrementEventMetric(eventoId, insideGeofence ? 'dentroDelRango' : 'fueraDelRango');
+          await incrementEventMetric(eventoId, insideGeofence ? 'fueraDelRango' : 'dentroDelRango', -1);
+        }
+      }
     }
 
     if (eventoId) {
