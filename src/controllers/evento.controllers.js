@@ -9,6 +9,10 @@ exports.crearEvento = async (req, res) => {
       tipo,
       fechaInicio,
       fechaFin,
+      duracionDias,
+      horaInicio,
+      horaFin,
+      duracionHoras,
       lugar,
       descripcion,
       capacidadMaxima,
@@ -23,9 +27,7 @@ exports.crearEvento = async (req, res) => {
       !tipo ||
       !lugar ||
       !coordenadas?.latitud ||
-      !coordenadas?.longitud ||
-      !fechaInicio ||
-      !fechaFin
+      !coordenadas?.longitud
     ) {
       return res.status(400).json({ mensaje: 'Faltan campos obligatorios del evento' });
     }
@@ -42,10 +44,29 @@ exports.crearEvento = async (req, res) => {
         longitud: parseFloat(coordenadas.longitud),
         radio: coordenadas.radio || 100
       },
-      politicasAsistencia,
-      fechaInicio: new Date(fechaInicio),
-      fechaFin: new Date(fechaFin)
+      politicasAsistencia
     });
+
+    if (fechaInicio) nuevoEvento.fechaInicio = new Date(fechaInicio);
+    if (fechaFin) nuevoEvento.fechaFin = new Date(fechaFin);
+    if (duracionDias !== undefined) nuevoEvento.duracionDias = duracionDias;
+    if (horaInicio !== undefined) nuevoEvento.horaInicio = horaInicio;
+    if (horaFin !== undefined) nuevoEvento.horaFin = horaFin;
+    if (duracionHoras !== undefined) nuevoEvento.duracionHoras = duracionHoras;
+
+    if (!fechaFin && fechaInicio && duracionDias) {
+      const fin = new Date(fechaInicio);
+      fin.setDate(fin.getDate() + parseInt(duracionDias) - 1);
+      nuevoEvento.fechaFin = fin;
+    }
+
+    if (!horaFin && horaInicio && duracionHoras) {
+      const [h, m = 0] = horaInicio.split(":" ).map(Number);
+      const total = h * 60 + m + parseFloat(duracionHoras) * 60;
+      const hf = Math.floor(total / 60) % 24;
+      const mf = Math.round(total % 60);
+      nuevoEvento.horaFin = `${String(hf).padStart(2, "0")}:${String(mf).padStart(2, "0")}`;
+    }
 
     await nuevoEvento.save();
     await incrementMetric("eventos");
@@ -109,6 +130,10 @@ exports.actualizarEvento = async (req, res) => {
       tipo,
       fechaInicio,
       fechaFin,
+      duracionDias,
+      horaInicio,
+      horaFin,
+      duracionHoras,
       lugar,
       descripcion,
       capacidadMaxima,
@@ -131,6 +156,22 @@ exports.actualizarEvento = async (req, res) => {
     }
     if (fechaInicio !== undefined) evento.fechaInicio = new Date(fechaInicio);
     if (fechaFin !== undefined) evento.fechaFin = new Date(fechaFin);
+    if (duracionDias !== undefined) evento.duracionDias = duracionDias;
+    if (horaInicio !== undefined) evento.horaInicio = horaInicio;
+    if (horaFin !== undefined) evento.horaFin = horaFin;
+    if (duracionHoras !== undefined) evento.duracionHoras = duracionHoras;
+    if (!evento.fechaFin && evento.fechaInicio && evento.duracionDias) {
+      const fin = new Date(evento.fechaInicio);
+      fin.setDate(fin.getDate() + parseInt(evento.duracionDias) - 1);
+      evento.fechaFin = fin;
+    }
+    if (!evento.horaFin && evento.horaInicio && evento.duracionHoras) {
+      const [h, m = 0] = evento.horaInicio.split(":" ).map(Number);
+      const total = h * 60 + m + parseFloat(evento.duracionHoras) * 60;
+      const hf = Math.floor(total / 60) % 24;
+      const mf = Math.round(total % 60);
+      evento.horaFin = `${String(hf).padStart(2, "0")}:${String(mf).padStart(2, "0")}`;
+    }
     if (estado !== undefined) evento.estado = estado;
 
     await evento.save();

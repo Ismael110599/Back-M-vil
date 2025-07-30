@@ -36,7 +36,12 @@ exports.registrarAsistencia = async (req, res) => {
 
     // Lógica de estado según hora y rango
     const ahora = Date.now();
-    const inicioEvento = new Date(evento.fechaInicio).getTime();
+    let inicioEvento = evento.fechaInicio ? new Date(evento.fechaInicio) : new Date();
+    if (evento.horaInicio) {
+      const [h, m = 0] = evento.horaInicio.split(":" ).map(Number);
+      inicioEvento.setHours(h, m, 0, 0);
+    }
+    inicioEvento = inicioEvento.getTime();
 
     let estado = 'Ausente';
     if (dentroDelRango) {
