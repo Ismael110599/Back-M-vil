@@ -6,7 +6,8 @@ const {
   actualizarEvento,
   obtenerEventos,
   obtenerEventoPorId,
-  eliminarEvento
+  eliminarEvento,
+  finalizarEvento
 } = require('../controllers/evento.controllers');
 const authMiddleware = require('../middlewares/auth');
 
@@ -16,6 +17,8 @@ router.get('/', obtenerEventos);
 router.get('/:id', obtenerEventoPorId);
 
 router.put('/:id', authMiddleware(['docente', 'admin']), actualizarEvento);
+
+router.post('/:id/finalizar', authMiddleware(['docente', 'admin']), finalizarEvento);
 
 router.delete('/:id', authMiddleware(['docente', 'admin']), eliminarEvento);
 

@@ -1,5 +1,7 @@
 const Evento = require('../models/model.evento');
 const { incrementMetric } = require("../utils/dashboard.metrics");
+const Dashboard = require('../models/dashboard.model');
+const { generateEventPDFBase64 } = require('../utils/pdf.util');
 
 // Crear un nuevo evento (solo docentes)
 exports.crearEvento = async (req, res) => {
@@ -199,5 +201,31 @@ exports.eliminarEvento = async (req, res) => {
     res.status(200).json({ mensaje: 'Evento eliminado correctamente' });
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al eliminar evento', error: err.message });
+  }
+};
+
+// Finalizar un evento y generar reporte PDF
+exports.finalizarEvento = async (req, res) => {
+  try {
+    const evento = await Evento.findById(req.params.id);
+    if (!evento || evento.estado !== 'activo') {
+      return res.status(404).json({ mensaje: 'Evento no encontrado' });
+    }
+
+    if (evento.creadorId.toString() !== req.user.id && req.user.rol !== 'admin' && req.user.rol !== 'docente') {
+      return res.status(403).json({ mensaje: 'No tienes permiso para finalizar este evento' });
+    }
+
+    evento.estado = 'finalizado';
+
+    const metrics = await Dashboard.find().lean();
+    const pdfBase64 = await generateEventPDFBase64(evento.toObject(), metrics);
+
+    evento.reportePDF = pdfBase64;
+    await evento.save();
+
+    res.status(200).json({ mensaje: 'Evento finalizado', pdfBase64 });
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al finalizar evento', error: err.message });
   }
 };
