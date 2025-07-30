@@ -1,6 +1,6 @@
 const Evento = require('../models/model.evento');
 const { incrementMetric } = require("../utils/dashboard.metrics");
-const Dashboard = require('../models/dashboard.model');
+const EventMetric = require('../models/eventMetric.model');
 const { generateEventPDFBase64 } = require('../utils/pdf.util');
 
 // Crear un nuevo evento (solo docentes)
@@ -218,7 +218,7 @@ exports.finalizarEvento = async (req, res) => {
 
     evento.estado = 'finalizado';
 
-    const metrics = await Dashboard.find().lean();
+    const metrics = await EventMetric.findOne({ evento: evento._id }).lean();
     const pdfBase64 = await generateEventPDFBase64(evento.toObject(), metrics);
 
     evento.reportePDF = pdfBase64;
