@@ -24,11 +24,19 @@ async function generateEventPDFBase64(evento, metrics = []) {
       if (evento.descripcion) doc.text(`Descripcion: ${evento.descripcion}`);
       doc.moveDown();
 
-      if (metrics && metrics.length) {
+      if (metrics && Array.isArray(metrics) && metrics.length) {
         doc.text('Métricas Dashboard:', { underline: true });
         metrics.forEach(m => {
           doc.text(`${m.metric}: ${m.value}`);
         });
+      } else if (metrics && typeof metrics === 'object' && !Array.isArray(metrics)) {
+        doc.text('Métricas Evento:', { underline: true });
+        if (metrics.dentroDelRango !== undefined) {
+          doc.text(`Dentro del rango: ${metrics.dentroDelRango}`);
+        }
+        if (metrics.fueraDelRango !== undefined) {
+          doc.text(`Fuera del rango: ${metrics.fueraDelRango}`);
+        }
       }
 
       doc.end();
