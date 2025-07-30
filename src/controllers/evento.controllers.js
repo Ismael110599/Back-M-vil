@@ -218,9 +218,6 @@ exports.finalizarEvento = async (req, res) => {
 
     evento.estado = 'finalizado';
 
-    const metrics = await EventMetric.findOne({ evento: evento._id }).lean();
-    const pdfBase64 = await generateEventPDFBase64(evento.toObject(), metrics);
-
     evento.reportePDF = pdfBase64;
     await evento.save();
 
