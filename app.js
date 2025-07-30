@@ -12,7 +12,7 @@ const cors = require('cors');
 const eventoRoutes = require('./src/routes/eventos.routes');
 const usuarioRoutes = require('./src/routes/usuarios.routes');
 const asistenciaRoutes = require('./src/routes/asistencia.routes');
-const locationRoutes = require('./src/routes/locationRoutes');
+const locationRoutes = require('./src/routes/location.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
 const justificacionRoutes = require('./src/routes/justificaciones.routes');
 require('./src/cron/asistenciaCron');

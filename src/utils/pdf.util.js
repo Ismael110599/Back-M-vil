@@ -29,8 +29,6 @@ async function generateEventPDFBase64(evento, dashboardMetrics = [], eventMetric
         dashboardMetrics.forEach(m => {
           doc.text(`${m.metric}: ${m.value}`);
         });
-        }
-      }
 
       doc.end();
     } catch (err) {

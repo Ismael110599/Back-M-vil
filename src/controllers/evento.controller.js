@@ -218,6 +218,14 @@ exports.finalizarEvento = async (req, res) => {
 
     evento.estado = 'finalizado';
 
+    const metrics = await require('../models/dashboard.model').find().lean();
+    const { generateEventPDFBase64 } = require('../utils/pdf.util');
+    const pdfBase64 = await generateEventPDFBase64(evento.toObject(), metrics);
+
+    if (!pdfBase64) {
+      return res.status(500).json({ mensaje: 'No se pudo generar el PDF del evento' });
+    }
+
     evento.reportePDF = pdfBase64;
     await evento.save();
 

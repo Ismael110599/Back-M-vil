@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const router = express.Router();
-const controller = require('../controllers/justificacion.controllers');
+const controller = require('../controllers/justificacion.controller');
 const auth = require('../middlewares/auth');
 
 const storage = multer.diskStorage({
