@@ -59,6 +59,7 @@ const eventoSchema = new mongoose.Schema({
     enum: ['activo', 'finalizado', 'cancelado'],
     default: 'activo'
   },
+  reportePDF: { type: String },
   participantesRegistrados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }],
   fechaCreacion: { type: Date, default: Date.now }
 }, {
