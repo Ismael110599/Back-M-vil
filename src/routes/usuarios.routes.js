@@ -1,18 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const auth =  require('../middlewares/auth');
+const controller = require('../controllers/usuarios.controller')
 
-router.post('/registrar', registrarUsuario);
+router.post('/registrar', controller.registrarUsuario);
 
-router.post('/docente/enviar-codigo', enviarCodigoDocente);
+router.post('/docente/enviar-codigo', controller.enviarCodigoDocente);
 
-router.post('/verificar-correo', verificarCorreo);
+router.post('/verificar-correo', controller.verificarCorreo);
 
-router.post('/login', iniciarSesion);
+router.post('/login', controller.iniciarSesion);
 
-router.get('/perfil/:id', obtenerPerfil);
+router.get('/perfil/:id', controller.obtenerPerfil);
 
-router.get('/docentes', auth(['admin']), listarDocentes);
+router.get('/docentes', auth(['admin']), controller.listarDocentes);
 
 
 router.put('/:id', auth(['estudiante', 'docente', 'admin']), actualizarUsuario);

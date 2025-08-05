@@ -56,7 +56,7 @@ const eventoSchema = new mongoose.Schema({
   },
   estado: {
     type: String,
-    enum: ['activo', 'finalizado', 'cancelado'],
+    enum: ['activo', 'finalizado', 'cancelado', 'En proceso'],
     default: 'activo'
   },
   reportePDF: { type: String },

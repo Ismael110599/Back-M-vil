@@ -30,10 +30,13 @@ exports.registrarUsuario = async (req, res) => {
       const codigo = Math.floor(100000 + Math.random() * 900000).toString();
       const hashedCode = await bcrypt.hash(codigo, 10);
       basePendiente.codigoVerificacion = hashedCode;
+    } // ← esta llave cierra el if correctamente
+
     // Para docentes se crea el registro pero el código se envía bajo demanda
     const nuevoPendiente = new PendingUser(basePendiente);
     await nuevoPendiente.save();
     return res.status(201).json({ mensaje: '✅ Docente registrado. Usa el botón para enviar el código de verificación.' });
+
   } catch (err) {
     console.error('[Registro] Error:', err);
     res.status(500).json({ error: 'Error al registrar el usuario' });
