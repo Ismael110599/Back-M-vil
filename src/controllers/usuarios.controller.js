@@ -30,17 +30,6 @@ exports.registrarUsuario = async (req, res) => {
       const codigo = Math.floor(100000 + Math.random() * 900000).toString();
       const hashedCode = await bcrypt.hash(codigo, 10);
       basePendiente.codigoVerificacion = hashedCode;
-
-      const nuevoPendiente = new PendingUser(basePendiente);
-      await nuevoPendiente.save();
-      await enviarCorreo(
-        correo,
-        'Código de verificación',
-        `Tu código de verificación es: ${codigo}`
-      );
-      return res.status(201).json({ mensaje: '✅ Usuario registrado. Revisa tu correo para verificarlo.' });
-    }
-
     // Para docentes se crea el registro pero el código se envía bajo demanda
     const nuevoPendiente = new PendingUser(basePendiente);
     await nuevoPendiente.save();
@@ -200,7 +189,6 @@ exports.obtenerPerfil = async (req, res) => {
     });
   }
 };
-
 // Enviar código de verificación para docentes registrados
 exports.enviarCodigoDocente = async (req, res) => {
   try {
