@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+
+const { registrarUsuario, iniciarSesion, actualizarUsuario, obtenerPerfil, verificarCorreo, enviarCodigoDocente, listarDocentes } = require('../controllers/usuarios.controller');
 const auth =  require('../middlewares/auth');
 const controller = require('../controllers/usuarios.controller')
 
