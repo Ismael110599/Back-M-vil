@@ -31,16 +31,6 @@ exports.registrarUsuario = async (req, res) => {
       const hashedCode = await bcrypt.hash(codigo, 10);
       basePendiente.codigoVerificacion = hashedCode;
 
-      const nuevoPendiente = new PendingUser(basePendiente);
-      await nuevoPendiente.save();
-      await enviarCorreo(
-        correo,
-        'Código de verificación',
-        `Tu código de verificación es: ${codigo}`
-      );
-      return res.status(201).json({ mensaje: '✅ Usuario registrado. Revisa tu correo para verificarlo.' });
-    }
-
     // Para docentes se crea el registro pero el código se envía bajo demanda
     const nuevoPendiente = new PendingUser(basePendiente);
     await nuevoPendiente.save();
@@ -198,6 +188,33 @@ exports.obtenerPerfil = async (req, res) => {
       ok: false,
       mensaje: 'Error al obtener el perfil del usuario',
     });
+  }
+};
+// Enviar código de verificación para docentes registrados
+exports.enviarCodigoDocente = async (req, res) => {
+  try {
+    const { correo } = req.body;
+    const pendiente = await PendingUser.findOne({ correo, rol: 'docente' });
+    if (!pendiente) {
+      return res.status(404).json({ ok: false, mensaje: 'Docente pendiente no encontrado' });
+    }
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedCode = await bcrypt.hash(codigo, 10);
+    pendiente.codigoVerificacion = hashedCode;
+    pendiente.expiresAt = Date.now();
+    await pendiente.save();
+
+    await enviarCorreo(
+      correo,
+      'Código de verificación',
+      `Tu código de verificación es: ${codigo}`
+    );
+
+    return res.status(200).json({ ok: true, mensaje: 'Código enviado' });
+  } catch (error) {
+    console.error('[EnviarCodigoDocente] Error:', error);
+    return res.status(500).json({ ok: false, mensaje: 'Error al enviar el código' });
   }
 };
 
