@@ -19,3 +19,5 @@ router.get('/:id', obtenerEventoPorId);
 router.put('/:id', authMiddleware(['docente', 'admin']), actualizarEvento);
 router.post('/:id/finalizar', authMiddleware(['docente', 'admin']), finalizarEvento);
 router.delete('/:id', authMiddleware(['docente', 'admin']), eliminarEvento);
+
+module.exports = router;

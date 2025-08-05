@@ -30,6 +30,7 @@ exports.registrarUsuario = async (req, res) => {
       const codigo = Math.floor(100000 + Math.random() * 900000).toString();
       const hashedCode = await bcrypt.hash(codigo, 10);
       basePendiente.codigoVerificacion = hashedCode;
+    }  
 
     // Para docentes se crea el registro pero el código se envía bajo demanda
     const nuevoPendiente = new PendingUser(basePendiente);
