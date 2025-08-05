@@ -280,6 +280,68 @@ exports.enviarCodigoDocente = async (req, res) => {
   }
 };
 
+// Listar docentes con estado de verificación
+exports.listarDocentes = async (req, res) => {
+  try {
+    const verificados = await Usuario.find({ rol: 'docente' }).select(
+      'nombre correo correoVerificado'
+    );
+    const pendientes = await PendingUser.find({ rol: 'docente' }).select(
+      'nombre correo'
+    );
+
+    const docentes = [
+      ...verificados.map((d) => ({
+        id: d._id,
+        nombre: d.nombre,
+        correo: d.correo,
+        correoVerificado: d.correoVerificado,
+      })),
+      ...pendientes.map((d) => ({
+        id: d._id,
+        nombre: d.nombre,
+        correo: d.correo,
+        correoVerificado: false,
+      })),
+    ];
+
+    return res.status(200).json({ ok: true, docentes });
+  } catch (error) {
+    console.error('[ListarDocentes] Error:', error);
+    return res
+      .status(500)
+      .json({ ok: false, mensaje: 'Error al listar docentes' });
+  }
+};
+
+// Enviar código de verificación para docentes registrados
+exports.enviarCodigoDocente = async (req, res) => {
+  try {
+    const { correo } = req.body;
+    const pendiente = await PendingUser.findOne({ correo, rol: 'docente' });
+    if (!pendiente) {
+      return res.status(404).json({ ok: false, mensaje: 'Docente pendiente no encontrado' });
+    }
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedCode = await bcrypt.hash(codigo, 10);
+    pendiente.codigoVerificacion = hashedCode;
+    pendiente.expiresAt = Date.now();
+    await pendiente.save();
+
+    await enviarCorreo(
+      correo,
+      'Código de verificación',
+      `Tu código de verificación es: ${codigo}`
+    );
+
+    return res.status(200).json({ ok: true, mensaje: 'Código enviado' });
+  } catch (error) {
+    console.error('[EnviarCodigoDocente] Error:', error);
+    return res.status(500).json({ ok: false, mensaje: 'Error al enviar el código' });
+  }
+};
+
 // Verificar correo electrónico
 exports.verificarCorreo = async (req, res) => {
   try {
