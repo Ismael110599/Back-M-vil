@@ -48,9 +48,15 @@ exports.getDashboardOverview = async (req, res) => {
     prevMonthStart.setMonth(prevMonthStart.getMonth() - 1);
     const prevMonthEnd = new Date(startOfMonth.getTime() - 1);
 
-    const eventFilter = req.user.rol === 'docente' ? { creadorId: req.user.id } : {};
+    const userId = req.user.id || req.user._id || req.user.userId;
+    const userRole = (req.user.rol || req.user.role || '').toString().trim().toLowerCase();
+    const isDocente = userRole === 'docente';
+
+    let eventFilter = {};
     let asistenciaMatch = {};
-    if (req.user.rol === 'docente') {
+
+    if (isDocente && userId) {
+      eventFilter = { creadorId: userId };
       const eventIds = await Evento.find(eventFilter).distinct('_id');
       asistenciaMatch = { evento: { $in: eventIds } };
     }
@@ -120,7 +126,10 @@ exports.getDashboardOverview = async (req, res) => {
     ]);
     const asistenciaPorHora = horaAgg.map(h => ({ hora: h._id, total: h.total }));
 
-    const actividadReciente = await Evento.find({ ...eventFilter, estado: 'activo' }, 'nombre fechaInicio fechaFin createdAt').sort({ createdAt: -1 }).lean();
+    const eventosDocente = await Evento
+      .find(eventFilter, 'nombre fechaInicio fechaFin estado createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json({
       totalEventos,
@@ -133,7 +142,7 @@ exports.getDashboardOverview = async (req, res) => {
       tendenciaAsistenciaMensual,
       asistenciaPorDia,
       asistenciaPorHora,
-      actividadReciente
+      eventosDocente
     });
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener estadisticas', message: err.message });
