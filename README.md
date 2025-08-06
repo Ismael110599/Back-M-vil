@@ -78,6 +78,7 @@ Cada una de estas dependencias se puede consultar en `package.json`.
   - Registro de asistencia validando la ubicación del estudiante.
   - Módulo de justificaciones y generación de reportes en PDF.
   - Endpoint `/dashboard/overview` para visualizar métricas generales del sistema.
+    - Cuando un docente consulta este endpoint solo ve estadísticas de los eventos que ha creado.
 - Se encuentran en progreso ajustes en el dashboard de métricas y mejoras en las notificaciones en tiempo real.
 
 ## Estado del desarrollo y próximos pasos
