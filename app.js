@@ -15,6 +15,8 @@ const asistenciaRoutes = require('./src/routes/asistencia.routes');
 const locationRoutes = require('./src/routes/location.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
 const justificacionRoutes = require('./src/routes/justificaciones.routes');
+const testRoutes = require('./src/routes/test.routes');
+
 require('./src/cron/asistenciaCron');
 
 const { initWebSocket } = require('./src/config/websocket');
@@ -61,6 +63,7 @@ app.use('/api/asistencia', asistenciaRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/justificaciones', justificacionRoutes);
+app.use('/api', testRoutes);
 
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(SwaggerDocumentation));

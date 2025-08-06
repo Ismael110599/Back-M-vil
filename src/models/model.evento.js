@@ -9,7 +9,8 @@ const eventoSchema = new mongoose.Schema({
   tipo: {
     type: String,
     enum: ['seminario', 'clase', 'conferencia'],
-    required: [true, 'El tipo de evento es obligatorio']
+    required: [true, 'El tipo de evento es obligatorio'],
+    default: 'seminario'
   },
   fechaInicio: {
     type: Date,
