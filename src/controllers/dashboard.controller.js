@@ -120,7 +120,10 @@ exports.getDashboardOverview = async (req, res) => {
     ]);
     const asistenciaPorHora = horaAgg.map(h => ({ hora: h._id, total: h.total }));
 
-    const actividadReciente = await Evento.find({ ...eventFilter, estado: 'activo' }, 'nombre fechaInicio fechaFin createdAt').sort({ createdAt: -1 }).lean();
+    const eventosDocente = await Evento
+      .find(eventFilter, 'nombre fechaInicio fechaFin estado createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json({
       totalEventos,
@@ -133,7 +136,7 @@ exports.getDashboardOverview = async (req, res) => {
       tendenciaAsistenciaMensual,
       asistenciaPorDia,
       asistenciaPorHora,
-      actividadReciente
+      eventosDocente
     });
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener estadisticas', message: err.message });
