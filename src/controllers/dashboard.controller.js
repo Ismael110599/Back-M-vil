@@ -48,9 +48,11 @@ exports.getDashboardOverview = async (req, res) => {
     prevMonthStart.setMonth(prevMonthStart.getMonth() - 1);
     const prevMonthEnd = new Date(startOfMonth.getTime() - 1);
 
-    const eventFilter = req.user.rol === 'docente' ? { creadorId: req.user.id } : {};
+    const userId = req.user.id || req.user._id;
+    const isDocente = req.user.rol && req.user.rol.toLowerCase() === 'docente';
+    const eventFilter = isDocente ? { creadorId: userId } : {};
     let asistenciaMatch = {};
-    if (req.user.rol === 'docente') {
+    if (isDocente) {
       const eventIds = await Evento.find(eventFilter).distinct('_id');
       asistenciaMatch = { evento: { $in: eventIds } };
     }
