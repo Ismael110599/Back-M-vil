@@ -48,12 +48,19 @@ exports.getDashboardOverview = async (req, res) => {
     prevMonthStart.setMonth(prevMonthStart.getMonth() - 1);
     const prevMonthEnd = new Date(startOfMonth.getTime() - 1);
 
+    const eventFilter = req.user.rol === 'docente' ? { creadorId: req.user.id } : {};
+    let asistenciaMatch = {};
+    if (req.user.rol === 'docente') {
+      const eventIds = await Evento.find(eventFilter).distinct('_id');
+      asistenciaMatch = { evento: { $in: eventIds } };
+    }
+
     const [totalEventos, eventosMes, eventosPrevMes, eventosActivos, totalAsistencias] = await Promise.all([
-      Evento.countDocuments(),
-      Evento.countDocuments({ createdAt: { $gte: startOfMonth } }),
-      Evento.countDocuments({ createdAt: { $gte: prevMonthStart, $lte: prevMonthEnd } }),
-      Evento.countDocuments({ estado: 'activo' }),
-      Asistencia.countDocuments()
+      Evento.countDocuments(eventFilter),
+      Evento.countDocuments({ ...eventFilter, createdAt: { $gte: startOfMonth } }),
+      Evento.countDocuments({ ...eventFilter, createdAt: { $gte: prevMonthStart, $lte: prevMonthEnd } }),
+      Evento.countDocuments({ ...eventFilter, estado: 'activo' }),
+      Asistencia.countDocuments(asistenciaMatch)
     ]);
 
     const cambioEventosMes = eventosPrevMes ? ((eventosMes - eventosPrevMes) * 100) / eventosPrevMes : null;
@@ -69,13 +76,14 @@ exports.getDashboardOverview = async (req, res) => {
     const prevWeekEnd = new Date(startOfWeek.getTime() - 1);
 
     const [asistenciasSemana, asistenciasSemanaPrev] = await Promise.all([
-      Asistencia.countDocuments({ createdAt: { $gte: startOfWeek } }),
-      Asistencia.countDocuments({ createdAt: { $gte: prevWeekStart, $lte: prevWeekEnd } })
+      Asistencia.countDocuments({ ...asistenciaMatch, createdAt: { $gte: startOfWeek } }),
+      Asistencia.countDocuments({ ...asistenciaMatch, createdAt: { $gte: prevWeekStart, $lte: prevWeekEnd } })
     ]);
 
     const cambioAsistenciasSemana = asistenciasSemanaPrev ? ((asistenciasSemana - asistenciasSemanaPrev) * 100) / asistenciasSemanaPrev : null;
 
     const promedioAgg = await Asistencia.aggregate([
+      { $match: asistenciaMatch },
       { $group: { _id: '$evento', total: { $sum: 1 } } },
       { $lookup: { from: 'eventos', localField: '_id', foreignField: '_id', as: 'evento' } },
       { $unwind: '$evento' },
@@ -86,29 +94,33 @@ exports.getDashboardOverview = async (req, res) => {
     const promedioAsistenciaPorcentaje = promedioAgg.length ? (promedioAgg.reduce((acc, v) => acc + v.porcentaje, 0) / promedioAgg.length) * 100 : 0;
 
     const tipoAgg = await Evento.aggregate([
+      { $match: eventFilter },
       { $group: { _id: '$tipo', total: { $sum: 1 } } }
     ]);
     const eventosPorTipo = tipoAgg.map(t => ({ tipo: t._id, porcentaje: totalEventos ? (t.total * 100) / totalEventos : 0 }));
 
     const tendenciaAgg = await Asistencia.aggregate([
+      { $match: asistenciaMatch },
       { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } }, total: { $sum: 1 } } },
       { $sort: { _id: 1 } }
     ]);
     const tendenciaAsistenciaMensual = tendenciaAgg.map(m => ({ mes: m._id, total: m.total }));
 
     const diasSemanaAgg = await Asistencia.aggregate([
+      { $match: asistenciaMatch },
       { $group: { _id: { $dayOfWeek: '$createdAt' }, total: { $sum: 1 } } }
     ]);
     const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
     const asistenciaPorDia = diasSemanaAgg.map(d => ({ dia: dias[d._id - 1], total: d.total }));
 
     const horaAgg = await Asistencia.aggregate([
+      { $match: asistenciaMatch },
       { $group: { _id: { $hour: '$createdAt' }, total: { $sum: 1 } } },
       { $sort: { _id: 1 } }
     ]);
     const asistenciaPorHora = horaAgg.map(h => ({ hora: h._id, total: h.total }));
 
-    const actividadReciente = await Evento.find({ estado: 'activo' }, 'nombre fechaInicio fechaFin createdAt').sort({ createdAt: -1 }).lean();
+    const actividadReciente = await Evento.find({ ...eventFilter, estado: 'activo' }, 'nombre fechaInicio fechaFin createdAt').sort({ createdAt: -1 }).lean();
 
     res.json({
       totalEventos,
