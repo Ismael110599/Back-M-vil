@@ -69,6 +69,7 @@ app.use('/api', testRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(SwaggerDocumentation));
 
 
+console.log(app._router.stack);
 
 // Capturar 404
 app.use((req, res, next) => {

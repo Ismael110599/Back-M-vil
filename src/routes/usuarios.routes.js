@@ -7,7 +7,7 @@ const controller = require('../controllers/usuarios.controller')
 
 router.post('/registrar', controller.registrarUsuario);
 
-router.post('/docente/enviar-codigo', controller.enviarCodigoDocente);
+router.post('/docente/enviar-codigo', enviarCodigoDocente);
 
 router.post('/verificar-correo', controller.verificarCorreo);
 
@@ -18,6 +18,8 @@ router.get('/perfil/:id', controller.obtenerPerfil);
 router.get('/docentes', auth(['admin']), controller.listarDocentes);
 
 
-router.put('/:id', auth(['estudiante', 'docente', 'admin']), actualizarUsuario);
+router.put('/:id', auth(['estudiante', 'docente', 'admin']), controller.actualizarUsuario);
+
+
 
 module.exports = router;
