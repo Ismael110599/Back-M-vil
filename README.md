@@ -57,7 +57,7 @@ Este esquema muestra el flujo de una petición: el usuario realiza una solicitud
 - **JWT (jsonwebtoken)**: autenticación de usuarios.
 - **bcryptjs**: cifrado de contraseñas.
 - **Nodemailer**: envío de correos de verificación.
-- **node-cron**: tareas programadas para actualizar asistencias.
+- **node-cron**: tareas programadas para actualizar asistencias y eventos.
 - **ws**: canal WebSocket para enviar actualizaciones en tiempo real.
 - **pdfkit**: generación de reportes en PDF.
 - **swagger-jsdoc / swagger-ui-express**: documentación interactiva de la API.
@@ -77,8 +77,22 @@ Cada una de estas dependencias se puede consultar en `package.json`.
   - Creación y gestión de eventos (docentes/administradores).
   - Registro de asistencia validando la ubicación del estudiante.
   - Módulo de justificaciones y generación de reportes en PDF.
-  - Endpoint `/dashboard/overview` para visualizar métricas generales del sistema.
+- Endpoint `/dashboard/overview` para visualizar métricas generales del sistema.
 - Se encuentran en progreso ajustes en el dashboard de métricas y mejoras en las notificaciones en tiempo real.
+
+## Cron de eventos
+
+Una tarea programada (`src/cron/eventoCron.js`) se ejecuta cada minuto usando `node-cron`. Revisa los eventos con estado `activo` cuya `fechaInicio` y `horaInicio` ya ocurrieron y cambia su estado a `En proceso`. También monitorea los eventos `En proceso` y los marca como `finalizado` cuando su `fechaFin` y `horaFin` han concluido. Al iniciar la aplicación, esta tarea se carga automáticamente desde `app.js`.
+
+Si un evento abarca varios días, tras finalizar la hora configurada de la jornada actual cambia a `En espera` para indicar formalmente que continuará al día siguiente hasta llegar a su `fechaFin`.
+
+Los eventos pueden tener los siguientes estados:
+
+- `activo`: creado y pendiente de iniciar.
+- `En proceso`: la fecha y hora de inicio ya pasaron.
+- `En espera`: la jornada actual terminó y continuará al día siguiente.
+- `finalizado`: concluyó con normalidad.
+- `cancelado`: fue suspendido antes de iniciar o concluir.
 
 ## Estado del desarrollo y próximos pasos
 
