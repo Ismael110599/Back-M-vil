@@ -13,11 +13,17 @@ const {
 const authMiddleware = require('../middlewares/auth');
 
 router.get('/mis', authMiddleware(['docente', 'admin']), obtenerMisEventos);
+
 router.post('/crear', authMiddleware(['docente', 'admin']), crearEvento);
+
 router.get('/', obtenerEventos);
+
 router.get('/:id', obtenerEventoPorId);
+
 router.put('/:id', authMiddleware(['docente', 'admin']), actualizarEvento);
+
 router.post('/:id/finalizar', authMiddleware(['docente', 'admin']), finalizarEvento);
+
 router.delete('/:id', authMiddleware(['docente', 'admin']), eliminarEvento);
 
 module.exports = router;
