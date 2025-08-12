@@ -1,11 +1,11 @@
 const PDFDocument = require('pdfkit');
-const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
+const QuickChart = require('quickchart-js');
 
 async function crearGraficoBarras({ labels, values, label }) {
-  const width = 400;
-  const height = 200;
-  const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
-  const configuration = {
+  const chart = new QuickChart();
+  chart.setWidth(400);
+  chart.setHeight(200);
+  chart.setConfig({
     type: 'bar',
     data: {
       labels,
@@ -21,8 +21,8 @@ async function crearGraficoBarras({ labels, values, label }) {
       plugins: { legend: { display: false } },
       scales: { y: { beginAtZero: true } }
     }
-  };
-  return chartJSNodeCanvas.renderToBuffer(configuration);
+  });
+  return chart.toBinary();
 }
 
 async function generarPDFEvento({ evento, totalAsistentes, promedioAsistencia, grafico }) {
