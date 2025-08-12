@@ -8,7 +8,8 @@ const {
   obtenerEventoPorId,
   eliminarEvento,
   finalizarEvento,
-  obtenerMisEventos
+  obtenerMisEventos,
+  generarReporteEvento
 } = require('../controllers/evento.controller');
 const authMiddleware = require('../middlewares/auth');
 
@@ -18,6 +19,7 @@ router.get('/', obtenerEventos);
 router.get('/:id', obtenerEventoPorId);
 router.put('/:id', authMiddleware(['docente', 'admin']), actualizarEvento);
 router.post('/:id/finalizar', authMiddleware(['docente', 'admin']), finalizarEvento);
+router.get('/:id/generarPDF', authMiddleware(['docente', 'admin']), generarReporteEvento);
 router.delete('/:id', authMiddleware(['docente', 'admin']), eliminarEvento);
 
 module.exports = router;
