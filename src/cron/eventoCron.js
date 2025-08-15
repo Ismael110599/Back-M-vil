@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const Evento = require('../models/model.evento');
+const { broadcast } = require('../config/websocket');
 
 /**
  * Determina si un evento ya debería estar en proceso
@@ -76,6 +77,7 @@ async function actualizarEventosEnProceso(now = new Date()) {
       if (debeIniciarEvento(evento, now)) {
         evento.estado = 'En proceso';
         await evento.save();
+        broadcast({ type: 'event-status', evento: String(evento._id), estado: evento.estado });
       }
     }
 
@@ -83,9 +85,11 @@ async function actualizarEventosEnProceso(now = new Date()) {
       if (debeFinalizarEvento(evento, now)) {
         evento.estado = 'finalizado';
         await evento.save();
+        broadcast({ type: 'event-status', evento: String(evento._id), estado: evento.estado });
       } else if (continuaManana(evento, now)) {
         evento.estado = 'En espera';
         await evento.save();
+        broadcast({ type: 'event-status', evento: String(evento._id), estado: evento.estado });
         console.info(`Evento "${evento.nombre}" continuará el día siguiente`);
       }
     }
@@ -94,6 +98,7 @@ async function actualizarEventosEnProceso(now = new Date()) {
       if (debeReanudarEvento(evento, now)) {
         evento.estado = 'En proceso';
         await evento.save();
+        broadcast({ type: 'event-status', evento: String(evento._id), estado: evento.estado });
       }
     }
   } catch (error) {
