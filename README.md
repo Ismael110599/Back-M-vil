@@ -97,24 +97,6 @@ flowchart TD
 ### 5.3 Registro de asistencia con geofencing
 ```mermaid
 sequenceDiagram
-    participant E as Estudiante
-    participant A as API
-    participant G as Geolib
-    E->>A: POST /asistencias (lat, lng)
-    A->>G: validar dentro de geocerca
-    G-->>A: OK/KO
-    A-->>E: registro exitoso o rechazado
-```
-- El front verifica la posición usando `geolocator` y envía la ubicación al backend.
-
-### 5.4 Notificaciones por salida de área
-```mermaid
-flowchart LR
-    Estudiante -- ws/updateLocation --> API
-    API -->|geocerca violada| Docente
-```
-- Mediante WebSockets el servidor recibe la posición en tiempo real. Si el estudiante sale del polígono se emite un evento al dashboard del docente.
-
 ### 5.5 Dashboards y reportes
 - **Docente**: métricas de asistencia por evento, gráficos y descarga de PDF.
 - **Estudiante**: historial de participaciones y estado de justificativos.
