@@ -97,35 +97,6 @@ flowchart TD
 ### 5.3 Registro de asistencia con geofencing
 ```mermaid
 sequenceDiagram
-    participant U as Estudiante
-    participant F as App Flutter
-    participant A as API
-    participant D as MongoDB
-    U->>F: Abre pantalla de evento
-    F->>F: Obtiene lat/lng y valida geocerca local
-    F-->>U: Habilita botón de "Registrar"
-    U->>A: POST /asistencias {eventoId, lat, lng}
-    A->>A: middleware verifica JWT y rol
-    A->>D: comprueba geocerca del evento
-    D-->>A: dentro de zona
-    A->>D: guarda asistencia
-    A-->>U: 201 Registro exitoso
-    A-->>Docente: ws/attendanceUpdate
-```
-- Flujo paso a paso:
-  1. La app obtiene la ubicación con `geolocator` y valida si el estudiante está dentro de la geocerca configurada para el evento.
-  2. Si la validación local es positiva, se habilita el botón para enviar la solicitud `POST /asistencias`.
-  3. El backend confirma el JWT, verifica nuevamente las coordenadas y almacena el registro en MongoDB.
-  4. Se emite un evento WebSocket para actualizar el dashboard del docente en tiempo real.
-
-### 5.4 Notificaciones por salida de área
-```mermaid
-flowchart LR
-    Estudiante -- ws/updateLocation --> API
-    API -->|geocerca violada| Docente
-```
-- Mediante WebSockets el servidor recibe la posición en tiempo real. Si el estudiante sale del polígono se emite un evento al dashboard del docente.
-
 ### 5.5 Dashboards y reportes
 - **Docente**: métricas de asistencia por evento, gráficos y descarga de PDF.
 - **Estudiante**: historial de participaciones y estado de justificativos.
