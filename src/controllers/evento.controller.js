@@ -108,8 +108,9 @@ exports.obtenerEventos = async (req, res) => {
 };
 // Obtener evento por ID
 exports.obtenerEventoPorId = async (req, res) => {
+  console.log("ID recibido:", req.params.id);
   try {
-    const evento = await Evento.findOne({ _id: req.params.id, estado: 'activo' }).populate('creadorId', 'nombre email');
+    const evento = await Evento.findOne({ _id: req.params.id, }).populate('creadorId', 'nombre email');
     if (!evento) return res.status(404).json({ mensaje: 'Evento no encontrado' });
     res.status(200).json(evento);
   } catch (err) {
