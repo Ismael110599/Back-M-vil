@@ -6,11 +6,11 @@ cron.schedule('* * * * *', async () => {
   try {
     const limite = new Date(Date.now() - 10 * 60 * 1000);
     const pendientes = await Asistencia.find({
-      estado: 'pendiente',
-      pendienteDesde: { $lte: limite }
+      estado: 'Pendiente',
+      createdAt: { $lte: limite }
     });
     for (const asistencia of pendientes) {
-      asistencia.estado = 'ausente';
+      asistencia.estado = 'Ausente';
       await asistencia.save();
     }
   } catch (error) {
