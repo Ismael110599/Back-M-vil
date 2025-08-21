@@ -1,162 +1,176 @@
-# Back-M-vil
+# GeoAsist Backend
 
-## Nombre del Proyecto y Objetivo General
+GeoAsist es una plataforma móvil y web para el control de asistencia basada en geolocalización. El proyecto combina un **frontend Flutter** y un **backend Node.js + Express** con base de datos **MongoDB**, organizados bajo principios de _Clean Architecture_.
 
-**Geoasistencia** es una API desarrollada en Node.js que permite gestionar eventos y registrar la asistencia de los participantes mediante geolocalización. El objetivo es facilitar a docentes y administradores el control de asistencia en actividades académicas o institucionales, ofreciendo a los estudiantes una forma sencilla y segura de registrar su presencia.
+---
+## 1. Descripción general
+- Los **docentes** crean eventos y definen la geocerca válida.
+- Los **estudiantes** registran su asistencia desde la aplicación móvil cuando se encuentran dentro del área.
+- El sistema notifica al docente si un estudiante abandona la zona permitida y genera métricas y reportes.
 
-## ¿Qué problema resuelve?
+```mermaid
+flowchart LR
+    A[Flutter App] -- REST/WS --> B[API Node.js]
+    B --> C[(MongoDB)]
+    B <--> D[Servicios Externos\n(PDF, Email)]
+```
 
-La aplicación atiende la necesidad de verificar la asistencia presencial de los estudiantes en un evento (clases, seminarios, conferencias, etc.) validando que se encuentren físicamente dentro de un radio permitido. Automatiza el registro y genera métricas para los organizadores.
+---
+## 2. Tecnologías usadas
+- **Flutter 3**: aplicación móvil multiplataforma.
+- **Node.js 18 + Express**: servidor REST.
+- **MongoDB** con **Mongoose**.
+- **JWT** y **bcrypt** para autenticación.
+- **WebSockets (ws)** para ubicación en tiempo real.
+- **node-cron** para tareas programadas.
+- **Swagger** para documentación interactiva.
+- **PM2** para despliegue.
 
-## Público objetivo
-
-- **Docentes y administradores** que necesitan crear eventos y llevar el control de asistencia.
-- **Estudiantes** que registran su participación en cada evento.
-
-## Arquitectura de Implementación
-
-El proyecto sigue el patrón **MVC** (Model–View–Controller) adaptado para servicios REST. Las vistas se omiten y la comunicación se realiza por JSON. Esta separación facilita el mantenimiento y la escalabilidad del código.
-
-### Estructura del proyecto
-
+---
+## 3. Estructura del proyecto
+### Backend (este repositorio)
 ```
 src/
-  config/        # Conexión a MongoDB, logger y WebSocket
-  controllers/   # Lógica de negocio (usuarios, eventos, asistencia, etc.)
-  cron/          # Tareas programadas (marcado de ausentes)
-  middlewares/   # Autenticación JWT y otras validaciones
+  config/        # Conexión, logger y WebSocket
+  controllers/   # Lógica de negocio
+  cron/          # Tareas programadas
+  middlewares/   # Autenticación y validaciones
   models/        # Esquemas de Mongoose
-  routes/        # Definición de endpoints REST
-  utils/         # Funciones auxiliares (correo, PDF, geolocalización, métricas)
+  routes/        # Endpoints REST
+  utils/         # Funciones auxiliares
+app.js           # Punto de entrada
 ```
 
+### Frontend (Flutter)
 ```
-app.js           # Punto de entrada de la aplicación
-swagger.js       # Generación de documentación Swagger
-```
-
-### Descripción de carpetas y archivos
-
-#### src/config
-- `db.js`: establece la conexión a MongoDB y maneja errores de conexión.
-- `logger.js`: configura el logger de Winston con etiquetas y colores.
-- `websocket.js`: inicia el servidor WebSocket y expone una función para emitir eventos a los clientes.
-
-#### src/controllers
-- `asistencia.controller.js`: registro de asistencia del estudiante verificando la geolocalización y el estado del evento.
-- `dashboard.controller.js`: calcula y expone métricas globales y por evento.
-- `evento.controller.js`: CRUD de eventos, gestión de estados y generación de reportes PDF.
-- `justificacion.controller.js`: creación, aprobación y rechazo de justificativos.
-- `location.Controller.js`: actualiza en tiempo real la ubicación de los usuarios y controla la geocerca.
-- `usuarios.controller.js`: registro, autenticación, verificación de correo y administración de usuarios.
-
-#### src/cron
-- `eventoCron.js`: tareas que cambian el estado de los eventos (activo, en proceso, en espera, finalizado).
-- `asistenciaCron.js`: marca como ausentes las asistencias pendientes después del tiempo de gracia.
-
-#### src/middlewares
-- `auth.js`: middleware de autenticación JWT y verificación de roles.
-
-#### src/models
-- `Model.user.js`: esquema de usuarios.
-- `pendingUser.model.js`: usuarios pendientes de verificación.
-- `model.evento.js`: esquema de eventos.
-- `asistencia.model.js`: registro de asistencias.
-- `dashboard.model.js` y `eventMetric.model.js`: métricas globales y por evento.
-- `justificacion.model.js`: justificativos de ausencia.
-- `model.UserLocation.js`: historial de ubicaciones para la geocerca.
-
-#### src/routes
-- `usuarios.routes.js`: endpoints de registro, login, perfil y gestión de docentes.
-- `eventos.routes.js`: rutas CRUD de eventos y generación de reportes.
-- `asistencia.routes.js`: endpoint para registrar asistencias.
-- `location.routes.js`: actualización de ubicación.
-- `dashboard.routes.js`: obtención y actualización de métricas.
-- `justificaciones.routes.js`: gestión de justificativos.
-- `test.routes.js`: ruta de prueba de conectividad.
-
-#### src/utils
-- `dashboard.metrics.js` y `event.metrics.js`: funciones para incrementar métricas y emitir actualizaciones vía WebSocket.
-- `email.util.js`: envío de correos mediante Nodemailer.
-- `eventReport.util.js` y `pdf.util.js`: utilidades para generar gráficos y reportes PDF.
-- `geo.util.js`: helpers de geolocalización.
-
-#### Archivos raíz
-- `app.js`: configura Express, conecta a MongoDB, registra rutas, middlewares y WebSocket.
-- `ecosystem.config.js`: configuración de PM2 para despliegue.
-- `swagger.js` y `swagger_output.json`: generan y exponen la documentación Swagger.
-
-### Justificación
-
-Se eligió MVC con Express y Mongoose por ser una arquitectura simple y conocida para aplicaciones web en Node.js. Permite organizar las lógicas de negocio en controladores, mantener los modelos desacoplados y exponer rutas limpias. Además, la capa de utilidades añade funcionalidades como envío de correos, generación de PDF y manejo de métricas.
-
-### Diagrama de flujo simplificado
-
-```
-Estudiante/Docente ---> (Routes) ---> (Controller) ---> (Model - MongoDB)
-                                   ^
-                                   |
-                               (Middleware - JWT)
+lib/
+  src/
+    presentation/   # Widgets y rutas
+    domain/         # Casos de uso y entidades
+    data/           # Clientes REST y repositorios
 ```
 
-Este esquema muestra el flujo de una petición: el usuario realiza una solicitud a un endpoint, pasa por el middleware de autenticación y llega al controlador, el cual consulta o modifica los modelos en MongoDB.
+---
+## 4. Configuración y despliegue
+1. Clonar el repositorio y crear un archivo `.env` basado en `.env.example`.
+2. Instalar dependencias del backend:
+   ```bash
+   npm install
+   npm start
+   ```
+3. En el proyecto Flutter, configurar el `baseUrl` apuntando al servidor y ejecutar:
+   ```bash
+   flutter run
+   ```
+4. Para producción se recomienda usar **PM2**:
+   ```bash
+   pm2 start ecosystem.config.js
+   ```
 
-## Tecnologías y librerías principales
+---
+## 5. Flujos principales
+### 5.1 Autenticación y control de roles
+```mermaid
+sequenceDiagram
+    participant F as Flutter
+    participant A as API
+    participant M as MongoDB
+    F->>A: POST /auth/login (email, contraseña)
+    A->>M: buscar usuario
+    M-->>A: usuario + rol
+    A-->>F: JWT con rol
+    F->>A: solicitudes con Header Authorization
+    A->>A: middleware verifica token y rol
+```
+- Roles disponibles: **docente** y **estudiante**. Los middlewares restringen el acceso a rutas protegidas.
 
-- **Express**: framework web para definir rutas y middlewares.
-- **Mongoose**: ODM para conectarse a MongoDB.
-- **JWT (jsonwebtoken)**: autenticación de usuarios.
-- **bcryptjs**: cifrado de contraseñas.
-- **Nodemailer**: envío de correos de verificación.
-- **node-cron**: tareas programadas para actualizar asistencias y eventos.
-- **ws**: canal WebSocket para enviar actualizaciones en tiempo real.
-- **pdfkit**: generación de reportes en PDF.
-- **swagger-jsdoc / swagger-ui-express**: documentación interactiva de la API.
+### 5.2 Creación y actualización de eventos con geolocalización
+```mermaid
+flowchart TD
+    D[Docente] -->|POST /eventos| API
+    API --> DB[(MongoDB)]
+    D -->|PUT/DELETE /eventos/:id| API
+    Estudiantes -->|GET /eventos activos| API
+```
+- Cada evento almacena coordenadas y radio permitido. El docente puede modificarlas en cualquier momento.
 
-Cada una de estas dependencias se puede consultar en `package.json`.
+### 5.3 Registro de asistencia con geofencing
+```mermaid
+sequenceDiagram
+    participant U as Estudiante
+    participant F as App Flutter
+    participant A as API
+    participant D as MongoDB
+    U->>F: Abre pantalla de evento
+    F->>F: Obtiene lat/lng y valida geocerca local
+    F-->>U: Habilita botón de "Registrar"
+    U->>A: POST /asistencias {eventoId, lat, lng}
+    A->>A: middleware verifica JWT y rol
+    A->>D: comprueba geocerca del evento
+    D-->>A: dentro de zona
+    A->>D: guarda asistencia
+    A-->>U: 201 Registro exitoso
+    A-->>Docente: ws/attendanceUpdate
+```
+- Flujo paso a paso:
+  1. La app obtiene la ubicación con `geolocator` y valida si el estudiante está dentro de la geocerca configurada para el evento.
+  2. Si la validación local es positiva, se habilita el botón para enviar la solicitud `POST /asistencias`.
+  3. El backend confirma el JWT, verifica nuevamente las coordenadas y almacena el registro en MongoDB.
+  4. Se emite un evento WebSocket para actualizar el dashboard del docente en tiempo real.
 
-## Demostración funcional
+### 5.4 Notificaciones por salida de área
+```mermaid
+flowchart LR
+    Estudiante -- ws/updateLocation --> API
+    API -->|geocerca violada| Docente
+```
+- Mediante WebSockets el servidor recibe la posición en tiempo real. Si el estudiante sale del polígono se emite un evento al dashboard del docente.
 
-- Iniciar el servidor:
-  ```bash
-  npm start
-  ```
-- Acceder a la documentación en `http://localhost:80/api-docs` para probar los endpoints.
-- Funcionalidades implementadas:
-  - Registro de usuarios con verificación por correo.
-  - Inicio de sesión y generación de token JWT.
-  - Creación y gestión de eventos (docentes/administradores).
-  - Registro de asistencia validando la ubicación del estudiante.
-  - Módulo de justificaciones y generación de reportes en PDF.
-- Endpoint `/dashboard/overview` para visualizar métricas generales del sistema.
-- Se encuentran en progreso ajustes en el dashboard de métricas y mejoras en las notificaciones en tiempo real.
+### 5.5 Dashboards y reportes
+- **Docente**: métricas de asistencia por evento, gráficos y descarga de PDF.
+- **Estudiante**: historial de participaciones y estado de justificativos.
 
-## Cron de eventos
+---
+## 6. Ejemplos de endpoints
+```bash
+# Registro
+POST /usuarios {"nombre":"Ana","email":"ana@uni.edu","password":"123"}
 
-Una tarea programada (`src/cron/eventoCron.js`) se ejecuta cada minuto usando `node-cron`. Revisa los eventos con estado `activo` cuya `fechaInicio` y `horaInicio` ya ocurrieron y cambia su estado a `En proceso`. También monitorea los eventos `En proceso` y los marca como `finalizado` cuando su `fechaFin` y `horaFin` han concluido. Al iniciar la aplicación, esta tarea se carga automáticamente desde `app.js`.
+# Login
+POST /auth/login {"email":"ana@uni.edu","password":"123"}
 
-Si un evento abarca varios días, tras finalizar la hora configurada de la jornada actual cambia a `En espera` para indicar formalmente que continuará al día siguiente hasta llegar a su `fechaFin`.
+# Crear evento (docente)
+POST /eventos {"nombre":"Clase","lat":-12.0,"lng":-77.0,"radio":50}
 
-Los eventos pueden tener los siguientes estados:
+# Actualizar ubicación (estudiante)
+POST /location {"lat":-12.0,"lng":-77.1}
 
-- `activo`: creado y pendiente de iniciar.
-- `En proceso`: la fecha y hora de inicio ya pasaron.
-- `En espera`: la jornada actual terminó y continuará al día siguiente.
-- `finalizado`: concluyó con normalidad.
-- `cancelado`: fue suspendido antes de iniciar o concluir.
+# Registrar asistencia
+POST /asistencias {"eventoId":1,"lat":-12.0,"lng":-77.0}
+```
 
-## Estado del desarrollo y próximos pasos
+---
+## 7. Buenas prácticas, pruebas y recomendaciones
+- Usar TypeScript o JSDoc para tipos claros.
+- Validar entradas con bibliotecas como `joi` o `express-validator`.
+- Registrar errores con `winston` y monitorear con PM2.
+- Implementar pruebas unitarias y de integración (por ejemplo con **Jest** y **supertest**).
+- Automatizar _linting_ y _formatting_ en CI/CD.
+- Mantener variables sensibles en `.env` y rotar claves JWT periódicamente.
 
-El repositorio contiene funcionalidades clave, pero aún se continúan realizando mejoras (por ejemplo, reportes adicionales y listados de eventos). Entre los próximos pasos se contempla:
+Para ejecutar pruebas (pendientes de implementación):
+```bash
+npm test
+```
 
-1. Completar el dashboard de métricas por evento.
-2. Mejorar el sistema de notificaciones WebSocket.
-3. Revisar la gestión de roles y permisos para nuevos escenarios.
-4. Documentar con más detalle los procesos de despliegue.
+---
+## 8. Recomendaciones de despliegue
+- MongoDB administrado (Atlas) para alta disponibilidad.
+- HTTPS obligatorio y renovación de tokens.
+- Monitorizar métricas con dashboards como Grafana.
+- Realizar respaldos periódicos de la base de datos.
 
-## Gestión del código y colaboración
-
-El proyecto se aloja en GitHub. En los últimos commits se observa la participación de distintos integrantes, por ejemplo `Ismael110599` y `RicardoRios07` según el historial de `git log`. Cada funcionalidad se agrega mediante commits identificables y se realiza merge a la rama principal.
-
-Para el trabajo en equipo se recomienda continuar utilizando ramas por funcionalidad y revisar los pull requests antes de integrarlos.
+---
+## 9. Créditos
+Proyecto desarrollado por el equipo de GeoAsist.
 
