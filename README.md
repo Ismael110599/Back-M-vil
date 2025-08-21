@@ -94,18 +94,29 @@ flowchart TD
 ```
 - Cada evento almacena coordenadas y radio permitido. El docente puede modificarlas en cualquier momento.
 
-### 5.3 Registro de asistencia con geofencing
+### 5.3 Registro y validación de asistencia
 ```mermaid
 sequenceDiagram
     participant E as Estudiante
     participant A as API
-    participant G as Geolib
-    E->>A: POST /asistencias (lat, lng)
-    A->>G: validar dentro de geocerca
-    G-->>A: OK/KO
-    A-->>E: registro exitoso o rechazado
+    participant DB as MongoDB
+    E->>A: POST /asistencia/registrar (eventoId, lat, lng)
+    A->>DB: busca evento activo
+    A->>A: calcula distancia Haversine
+    A-->>E: estado (Presente/Pendiente/Ausente)
 ```
-- El front verifica la posición usando `geolocator` y envía la ubicación al backend.
+
+1. La app obtiene la geolocalización del estudiante.
+2. El estudiante envía `POST /asistencia/registrar` con el `eventoId` y sus coordenadas.
+3. La API verifica que el evento exista, esté activo y que el estudiante no haya registrado antes.
+4. Se calcula la distancia respecto a la geocerca del evento:
+   - **Presente**: dentro del radio permitido.
+   - **Pendiente**: fuera del radio pero antes de 10 minutos del inicio.
+   - **Ausente**: fuera del radio y pasado el tiempo de gracia.
+5. Se guarda la asistencia con las coordenadas y el estado resultante.
+6. Un cron job (`src/cron/asistenciaCron.js`) corre cada minuto y cambia de "Pendiente" a "Ausente" las asistencias con más de 10 minutos.
+
+- El front verifica la posición usando `geolocator` antes de enviar la solicitud.
 
 ### 5.4 Notificaciones por salida de área
 ```mermaid
