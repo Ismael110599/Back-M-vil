@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "test": "jest --detectOpenHandles --forceExit"
   },
   "dependencies": {
     "@nestjs/swagger": "^11.2.0",
@@ -31,7 +32,12 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "babel-jest": "^30.0.5",
+    "jest": "^30.0.5",
     "nodemon": "^3.1.10",
+    "supertest": "^7.1.4",
     "swagger-autogen": "^2.23.7"
   }
 }

@@ -201,7 +201,7 @@ exports.actualizarEvento = async (req, res) => {
 exports.eliminarEvento = async (req, res) => {
   try {
     const evento = await Evento.findById(req.params.id);
-    if (!evento || evento.estado !== 'activo') return res.status(404).json({ mensaje: 'Evento no encontrado' });
+    if (!evento || evento.estado ) return res.status(404).json({ mensaje: 'Evento no encontrado' });
 
     if (evento.creadorId.toString() !== req.user.id && req.user.rol !== 'admin' && req.user.rol !== 'docente') {
       return res.status(403).json({ mensaje: 'No tienes permiso para eliminar este evento' });
