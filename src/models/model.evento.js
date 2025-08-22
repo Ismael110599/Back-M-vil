@@ -61,7 +61,7 @@ const eventoSchema = new mongoose.Schema({
     default: 'activo'
   },
   reportePDF: { type: String },
-  participantesRegistrados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }],
+  participantesRegistrados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Asistencia' }],
   fechaCreacion: { type: Date, default: Date.now }
 }, {
   timestamps: true
