@@ -66,6 +66,7 @@ exports.registrarAsistencia = async (req, res) => {
     });
 
     await asistencia.save();
+    await Evento.findByIdAndUpdate(eventoId, { $addToSet: { participantesRegistrados: asistencia._id } });
     await incrementMetric("asistencias");
     await incrementEventMetric(eventoId, dentroDelRango ? 'dentroDelRango' : 'fueraDelRango');
 

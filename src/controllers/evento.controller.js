@@ -94,7 +94,11 @@ exports.obtenerEventos = async (req, res) => {
   try {
     // ✅ Sin filtro, trae todos los eventos
     const eventos = await Evento.find()
-      .populate('creadorId', 'nombre email rol');
+      .populate('creadorId', 'nombre email rol')
+      .populate({
+        path: 'participantesRegistrados',
+        populate: { path: 'estudiante', select: 'nombre email' }
+      });
 
     res.status(200).json(eventos);
   } catch (err) {
@@ -109,7 +113,12 @@ exports.obtenerEventos = async (req, res) => {
 // Obtener evento por ID
 exports.obtenerEventoPorId = async (req, res) => {
   try {
-    const evento = await Evento.findOne({ _id: req.params.id, }).populate('creadorId', 'nombre email');
+    const evento = await Evento.findOne({ _id: req.params.id, })
+      .populate('creadorId', 'nombre email')
+      .populate({
+        path: 'participantesRegistrados',
+        populate: { path: 'estudiante', select: 'nombre email' }
+      });
     if (!evento) return res.status(404).json({ mensaje: 'Evento no encontrado' });
     res.status(200).json(evento);
   } catch (err) {
@@ -244,7 +253,12 @@ exports.obtenerMisEventos = async (req, res) => {
     const filtro = { creadorId: req.user.id };
     if (estado) filtro.estado = estado;
 
-    const eventos = await Evento.find(filtro).populate('creadorId', 'nombre email rol');
+    const eventos = await Evento.find(filtro)
+      .populate('creadorId', 'nombre email rol')
+      .populate({
+        path: 'participantesRegistrados',
+        populate: { path: 'estudiante', select: 'nombre email' }
+      });
     res.status(200).json(eventos);
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al obtener mis eventos', error: err.message });
